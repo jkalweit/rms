@@ -32,6 +32,7 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         function TicketsView(props) {
             _super.call(this, props);
             this.name = '  TicketsView';
+            console.log('props: ', props);
             this.state = {
                 filteredTickets: this.getFilteredTickets('', this.props.tickets)
             };
@@ -60,6 +61,7 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
             this.setState({ filteredTickets: filteredTickets });
         };
         TicketsView.prototype.getFilteredTickets = function (filter, tickets) {
+            console.log('get filtered tickets: ', tickets);
             var normalized = filter.trim().toLowerCase();
             if (normalized.length === 0)
                 return tickets;
@@ -74,6 +76,7 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         TicketsView.prototype.render = function () {
             var _this = this;
             var tickets = this.state.filteredTickets;
+            console.log('tickets: ', tickets);
             var nodes = Object.keys(tickets).map(function (key) {
                 if (key !== 'lastModified') {
                     var ticket = tickets[key];

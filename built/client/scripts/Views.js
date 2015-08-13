@@ -4,7 +4,8 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './SynchedObject', './Navigation', './Reconciliation'], function (require, exports, React, Sync, Nav, Rec) {
+define(["require", "exports", 'react/addons', './SyncedObject', './Navigation', './Reconciliation'], function (require, exports, React, Sync, Nav, Rec) {
+    'use strict';
     var Bootstrap = (function () {
         function Bootstrap() {
         }
@@ -18,22 +19,18 @@ define(["require", "exports", 'react/addons', './SynchedObject', './Navigation',
     var MainView = (function (_super) {
         __extends(MainView, _super);
         function MainView(props) {
-            var _this = this;
             _super.call(this, props);
-            var rec = JSON.parse(localStorage.getItem('reconciliation')) || {};
-            var sync = new Sync.SyncedObject('reconciliation');
-            sync.setByPath('tickets.New1.key', 'New1');
-            sync.setByPath('tickets.New1.name', 'A new 1!');
-            sync.setByPath('tickets.New2.key', 'New2');
-            sync.setByPath('tickets.New2.name', 'A new 2!');
+            var rec = {
+                tickets: {
+                    '1': { key: '1', name: 'Justin' },
+                    '2': { key: '2', name: 'Larry' }
+                }
+            };
+            var sync = Sync.MakeSyncImmutable(rec);
             this.state = {
-                reconciliation: sync.get(),
+                reconciliation: sync,
                 isNavOpen: false
             };
-            sync.__.onUpdated(function (updated) {
-                console.log("HEEERRRR!!!!!", updated, sync.get());
-                _this.setState({ reconciliation: updated });
-            });
             console.log(this.state);
         }
         MainView.prototype.closeNav = function () {

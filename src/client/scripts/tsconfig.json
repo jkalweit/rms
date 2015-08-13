@@ -17,7 +17,7 @@
         "./BaseViews.tsx",
         "./Navigation.tsx",
         "./Reconciliation.tsx",
-        "./SynchedObject.tsx",
+        "./SyncedObject.tsx",
         "./Views.tsx"
     ]
 }

@@ -19,9 +19,7 @@ namespace.on('connection', function (socket) {
     });
 });
 app.use('/', function (req, res, next) {
-    console.log('URL: ' + req.url);
     if (req.url === '/') {
-        console.log('doing it');
         res.writeHead('content-type', 'text/plain');
         res.write('<!DOCTYPE html>');
         res.write('<html lang="en">');

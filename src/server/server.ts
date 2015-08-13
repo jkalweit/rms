@@ -34,9 +34,7 @@ namespace.on('connection', (socket) => {
 
 
 app.use('/', (req: any, res: any, next: any) => {
-    console.log('URL: ' + req.url);
     if(req.url === '/') {
-      console.log('doing it');
       res.writeHead('content-type','text/plain')
       res.write('<!DOCTYPE html>');
       res.write('<html lang="en">');

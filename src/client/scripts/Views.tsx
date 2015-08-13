@@ -2,10 +2,12 @@
 
 
 import React = require('react/addons');
-import Sync = require('./SynchedObject');
+import Sync = require('./SyncedObject');
 import Models = require('./Models');
 import Nav = require('./Navigation');
 import Rec = require('./Reconciliation');
+
+'use strict';
 
 
 export class Bootstrap {
@@ -18,8 +20,6 @@ export class Bootstrap {
 
 
 
-
-
 export interface MainViewState {
     reconciliation?: Models.Reconciliation;
     isNavOpen?: boolean;
@@ -27,24 +27,31 @@ export interface MainViewState {
 export class MainView extends React.Component<{}, MainViewState> {
     constructor(props: {}) {
         super(props);
-        var rec = JSON.parse(localStorage.getItem('reconciliation')) || {};
+        //var rec = JSON.parse(localStorage.getItem('reconciliation')) || { tickets: {} };
+        var rec = {
+            tickets: {
+                '1': { key: '1', name: 'Justin' },
+                '2': { key: '2', name: 'Larry' }
+            }
+        };
 
-        var sync = new Sync.SyncedObject('reconciliation');
+        var sync = Sync.MakeSyncImmutable(rec);
+        //sync['tickets'] = 'I CHANGED IT!';
 
-        sync.setByPath('tickets.New1.key', 'New1');
+        /*sync.setByPath('tickets.New1.key', 'New1');
         sync.setByPath('tickets.New1.name', 'A new 1!');
         sync.setByPath('tickets.New2.key', 'New2');
-        sync.setByPath('tickets.New2.name', 'A new 2!');
+        sync.setByPath('tickets.New2.name', 'A new 2!');*/
 
         this.state = {
-            reconciliation: sync.get(),
+            reconciliation: sync as Models.Reconciliation,
             isNavOpen: false
         };
 
-        sync.__.onUpdated((updated: Models.Reconciliation) => {
-          console.log("HEEERRRR!!!!!", updated, sync.get());
-          this.setState({ reconciliation: updated });
-        });
+        /*sync.__.onUpdated((updated: Models.Reconciliation) => {
+            console.log("HEEERRRR!!!!!", updated, sync.get());
+            this.setState({ reconciliation: updated });
+        });*/
 
         console.log(this.state);
 
@@ -59,7 +66,7 @@ export class MainView extends React.Component<{}, MainViewState> {
         // this.socket.emit('getLatestRec');
     }
     closeNav() {
-      this.setState({ isNavOpen: false });
+        this.setState({ isNavOpen: false });
     }
     render() {
         //var rec = this.state.reconciliation;
@@ -69,11 +76,11 @@ export class MainView extends React.Component<{}, MainViewState> {
             <div>
             <div className="sticky-header">
               <ul className={className}>
-                <li className="hamburger-icon" onClick={() => { this.setState({ isNavOpen: !this.state.isNavOpen }) }}><span className="col-2 fa fa-bars"></span></li>
-                <li><Nav.NavigationItem hash="#" onSelect={ () => { this.closeNav(); }}><span className="col-2">RMS</span></Nav.NavigationItem></li>
-                <li className="hamburger"><Nav.NavigationItem hash="#reconciliation" onSelect={ () => { this.closeNav(); }}><span className="col-6">Reconciliation</span></Nav.NavigationItem></li>
-                <li className="hamburger"><Nav.NavigationItem hash="#menu" onSelect={ () => { this.closeNav(); }}><span className="col-5">Menu</span></Nav.NavigationItem></li>
-                <li className="hamburger"><Nav.NavigationItem hash="#kitchen" onSelect={ () => { this.closeNav(); }}><span className="col-5">Kitchen</span></Nav.NavigationItem></li>
+                <li className="hamburger-icon" onClick={() => { this.setState({ isNavOpen: !this.state.isNavOpen }) } }><span className="col-2 fa fa-bars"></span></li>
+                <li><Nav.NavigationItem hash="#" onSelect={ () => { this.closeNav(); } }><span className="col-2">RMS</span></Nav.NavigationItem></li>
+                <li className="hamburger"><Nav.NavigationItem hash="#reconciliation" onSelect={ () => { this.closeNav(); } }><span className="col-6">Reconciliation</span></Nav.NavigationItem></li>
+                <li className="hamburger"><Nav.NavigationItem hash="#menu" onSelect={ () => { this.closeNav(); } }><span className="col-5">Menu</span></Nav.NavigationItem></li>
+                <li className="hamburger"><Nav.NavigationItem hash="#kitchen" onSelect={ () => { this.closeNav(); } }><span className="col-5">Kitchen</span></Nav.NavigationItem></li>
               </ul>
             </div>
             <Nav.NavigationView hash="#">

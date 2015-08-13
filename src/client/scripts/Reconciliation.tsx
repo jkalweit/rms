@@ -64,6 +64,7 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
     filterInput: any;
     constructor(props: TicketsViewProps) {
         super(props);
+        console.log('props: ', props);
         this.state = {
             filteredTickets: this.getFilteredTickets('', this.props.tickets)
         };
@@ -96,6 +97,7 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
       this.setState({ filteredTickets: filteredTickets });
     }
     getFilteredTickets(filter: string, tickets: {[key: string]: Models.Ticket}) {
+        console.log('get filtered tickets: ', tickets);
         var normalized = filter.trim().toLowerCase();
         if (normalized.length === 0) return tickets;
 
@@ -110,6 +112,7 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
     }
     render() {
         var tickets = this.state.filteredTickets;
+        console.log('tickets: ', tickets);
         var nodes = Object.keys(tickets).map((key) => {
             if(key !== 'lastModified') {
             var ticket = tickets[key];
