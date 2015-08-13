@@ -1,0 +1,23 @@
+{
+  "name": "rms",
+  "version": "0.0.0",
+  "authors": [
+    "jkalweit <kalweit@alumni.duke.edu>"
+  ],
+  "moduleType": [
+    "amd"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "font-awesome": "~4.4.0",
+    "requirejs": "~2.1.20",
+    "react": "~0.13.3"
+  }
+}

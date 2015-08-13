@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "outDir": "../../built/server/"
+    },
+    "filesGlob": [
+        "./*.ts",
+        "./*.tsx"
+    ],
+    "files": [
+        "./FilePersistence.ts",
+        "./db.ts",
+        "./rms-rest.ts",
+        "./server.ts"
+    ]
+}

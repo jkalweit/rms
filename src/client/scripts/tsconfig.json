@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "amd",
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "outDir": "../../../built/client/scripts",
+        "jsx": "react"
+    },
+    "filesGlob": [
+        "./*.ts",
+        "./*.tsx"
+    ],
+    "files": [
+        "./App.ts",
+        "./Models.ts",
+        "./BaseViews.tsx",
+        "./Navigation.tsx",
+        "./Reconciliation.tsx",
+        "./SynchedObject.tsx",
+        "./Views.tsx"
+    ]
+}

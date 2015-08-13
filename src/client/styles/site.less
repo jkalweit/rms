@@ -1,0 +1,256 @@
+// out: ../../../built/client/styles/site.css, sourcemap: true
+
+@import "colors";
+
+@font-size: 16px;
+
+@mobile-width: 962px;
+
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+.scroll {
+  overflow: scroll;
+}
+
+body {
+  .scroll;
+  font-family: 'Roboto', sans-serif;
+  font-size: @font-size;
+  color: @mdc-black-dark;
+  margin: 0;
+  padding: 0;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+li {
+  .noselect;
+}
+
+.row {
+  clear: both;
+  overflow: auto;
+}
+
+.col {
+  float: left;
+  padding: 3px;
+  margin: 3px;
+}
+.generate-cols(10);
+.generate-cols(@n, @i: 1) when (@i =< @n) {
+  .col-@{i} {
+    .col;
+    width: (@i * 25px);
+  }
+  .generate-cols(@n, (@i + 1));
+}
+
+
+
+
+@btn-background-color: #FFFFFF;
+@btn-color: @mdc-black-darker;
+.btn {
+  border: 1px solid @mdc-black-lighter;
+  border-radius: 3px;
+  background-color: @btn-background-color;
+  color: @btn-color;
+  text-align: center;
+  user-select: none;
+
+  transition: all 100ms ease-out;
+  transition-property: color, background-color;
+
+  &.btn-confirm {
+    background-color: @mdc-green-500;
+    color: #FFFFFF;
+  }
+
+  &.btn-cancel {
+    background-color: @mdc-black-light;
+    color: #FFFFFF;
+  }
+
+  &.btn-add {
+    background-color: #FFFFFF;
+    color: @mdc-indigo-400;
+  }
+
+  &.btn-delete {
+    background-color: @mdc-red-500;
+    color: #FFFFFF;
+  }
+
+  &:hover {
+    background-color: @mdc-black-dark;
+    color: #FFFFFF;
+    cursor: pointer;
+  }
+
+  &.pressed {
+    color: @mdc-black-darker;
+    background-color: @mdc-green-100;
+  }
+}
+
+
+.defaultList-enter {
+  opacity: 0.01;
+  transition: opacity .2s ease-in;
+}
+
+.defaultList-enter.defaultList-enter-active {
+  opacity: 1;
+}
+
+.defaultList-leave {
+  opacity: 1;
+  transition: width .2s ease-in, height .2s ease-in;
+}
+
+.defaultList-leave.defaultList-leave-active {
+  width: 0px;
+  height: 0px;
+}
+
+
+input, textarea, keygen, select, button {
+  font-size: @font-size;
+}
+
+@header-font-size: 20px;
+@header-height: 50px;
+.sticky-header {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: @mdc-green-500;
+  font-size: @header-font-size;
+  height: @header-height;
+  color: @mdc-black-dark;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.5);
+
+  ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+
+      .link {
+        display: block;
+        min-width: 80px;
+        height: 100%;
+        text-decoration: none;
+        color: inherit;
+        padding: ((@header-height - @header-font-size) / 2) 10px;
+        margin: 0;
+        cursor: pointer;;
+
+        transition: all 100ms ease-out;
+        transition-property: color, background-color;
+
+        &:hover {
+          color: #FFFFFF;
+          background-color: @mdc-green-700;
+          box-shadow: 0px 2px rgba(0, 0, 0, 0.2);
+          height: @header-height;
+        }
+
+        &:active, &.active {
+          color: #FFFFFF;
+          background-color: @mdc-green-900;
+          box-shadow: 0px 2px rgba(0, 0, 0, 0.2);
+          height: @header-height;
+        }
+      }
+
+      li {
+        float: left;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        text-align: center;
+
+        a {
+          .link;
+        }
+      }
+      .hamburger-icon {
+        .link;
+        height: 0px;
+        float: right;
+      }
+  }
+  @media screen and (max-width: @mobile-width) {
+      ul {
+        overflow: visible;
+        height: auto;
+        box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.5);
+
+        li {
+          height: @header-height;
+          background-color: @mdc-green-500;
+        }
+      }
+
+
+      .hamburger {
+        display: none;
+        overflow: hidden;
+      }
+
+      .open .hamburger {
+        text-align: left;
+        overflow: auto;
+        z-index: 2;
+        position: relative;
+        display: block;
+        float: none;
+        //clear: both;
+        width: 100%;
+        border: 1px solid @mdc-black-lighter;
+      }
+  }
+}
+
+
+
+.navigation-view {
+  position: fixed;
+  top: @header-height;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: @mdc-yellow-50;
+  transition: opacity 200ms;
+}
+
+#content {
+
+}
+
+.text-right {
+  text-align: right;
+}
+
+@import "menu";
+@import "kitchen";
+@import "reconciliation";

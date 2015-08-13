@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"target": "es5",
+		"module": "amd",
+		"sourceMap": true,
+		"jsx" : "react"
+	},
+	"files" : [
+		"Models.ts",
+		"DataStores.ts",
+		"Store.ts",
+		"BaseViews.tsx",
+		"VendorViews.tsx",
+		"InventoryViews.tsx",
+		"MenuViews.tsx",
+		"ShiftViews.tsx",
+		"KitchenViews.tsx",
+		"ReconciliationViews.tsx",
+		"Views.tsx"
+	]
+}
