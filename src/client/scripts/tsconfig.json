@@ -14,10 +14,11 @@
     "files": [
         "./App.ts",
         "./Models.ts",
+        "./SyncNode.ts",
         "./BaseViews.tsx",
         "./Navigation.tsx",
         "./Reconciliation.tsx",
-        "./SyncedObject.tsx",
+        "./SyncNodeSocket.tsx",
         "./Views.tsx"
     ]
 }

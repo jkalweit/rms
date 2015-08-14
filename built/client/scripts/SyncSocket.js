@@ -1,6 +1,6 @@
 /// <reference path="./typings/tsd.d.ts" />
+"use strict";
 define(["require", "exports"], function (require, exports) {
-    "use strict";
     var Utils = (function () {
         function Utils() {
         }
@@ -103,4 +103,4 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.MakeSyncImmutable = MakeSyncImmutable;
 });
-//# sourceMappingURL=SyncedObject.js.map
+//# sourceMappingURL=SyncSocket.js.map

@@ -2,7 +2,7 @@
 
 
 import React = require('react/addons');
-import Sync = require('./SyncedObject');
+import Sync = require('./SyncNodeSocket');
 import Models = require('./Models');
 import Nav = require('./Navigation');
 import Rec = require('./Reconciliation');
@@ -29,51 +29,19 @@ export class MainView extends React.Component<{}, MainViewState> {
         super(props);
 
 
+        var sync = new Sync.SyncNodeSocket<Models.Reconciliation>('/reconciliation');
 
-        var rec = JSON.parse(localStorage.getItem('reconciliation'))
-        || {
-            tickets: {
-                '1': { key: '1', name: 'Justin', orders: { '1': { name: 'Testing' } } },
-                '2': { key: '2', name: 'Larry' }
-            }
-        };
-
-        var sync = Sync.MakeSyncImmutable(rec);
-
-        sync.__.onUpdated((updated: Sync.ISyncImmutable) => {
-            localStorage.setItem('reconciliation', JSON.stringify(updated));
-            this.setState({ reconciliation: updated as any });
+        sync.onUpdated((updated: Models.Reconciliation) => {
+            console.log('     setting state: ', updated);
+            this.setState({ reconciliation: updated });
         });
 
-        /*sync.setByPath('tickets.New1.key', 'New1');
-        sync.setByPath('tickets.New1.name', 'A new 1!');
-        sync.setByPath('tickets.New2.key', 'New2');
-        sync.setByPath('tickets.New2.name', 'A new 2!');*/
-
+        console.log('sync.get: ', sync.get());
 
         this.state = {
-            reconciliation: sync as any,
+            reconciliation: sync.get(),
             isNavOpen: false
         };
-
-        /*sync.__.onUpdated((updated: Models.Reconciliation) => {
-            console.log("HEEERRRR!!!!!", updated, sync.get());
-            this.setState({ reconciliation: updated });
-        });*/
-
-
-        // this.socket.on('getLatestRecResponse', (data: any) => {
-        //     localStorage.setItem('reconciliation', data);
-        //     var rec: Models.Reconciliation = JSON.parse(data);
-        //     console.log('getLatestRecResponse', rec);
-        //     this.setState({ reconciliation: rec });
-        // });
-        //
-        // this.socket.emit('getLatestRec');
-    }
-    doTest() {
-      var rec = this.state.reconciliation;
-      (rec.tickets as any).set('1', 'I CHANGED IT!!!!');
     }
     closeNav() {
         this.setState({ isNavOpen: false });
@@ -95,7 +63,6 @@ export class MainView extends React.Component<{}, MainViewState> {
             </div>
             <Nav.NavigationView hash="#">
               <h1>Welcome to RMS</h1>
-              <button onClick={ this.doTest.bind(this) }>Test</button>
               <p>There will be a dashboard here later.</p>
               <p>Use the navigation above to select a location.</p>
             </Nav.NavigationView>

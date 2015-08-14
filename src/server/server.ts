@@ -19,16 +19,22 @@ var io = socketio(server);
 
 var reconciliation = {
   lastModified: new Date().toISOString(),
-  name: 'Test Rec'
+  name: 'Test Rec',
+  tickets: {
+    '0': { key: '0', name: 'Justin' }
+  }
 };
 
 
 var namespace = io.of('/reconciliation');
 namespace.on('connection', (socket) => {
     console.log('someone connected to reconciliation');
-    socket.on('getLatestRec', (comparisonDate: Date) => {
-        console.log('getLatestRec', comparisonDate);
-        socket.emit('getLatestRecResponse', JSON.stringify(reconciliation));
+
+    socket.on('getLatest', (clientLastModified: string) => {
+        console.log('getLatest', reconciliation.lastModified, clientLastModified);
+        if(!clientLastModified || clientLastModified < reconciliation.lastModified) {
+            socket.emit('updated', JSON.stringify(reconciliation));
+        }
     });
 });
 
