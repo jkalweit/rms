@@ -4,25 +4,9 @@ define(["require", "exports"], function (require, exports) {
     var Utils = (function () {
         function Utils() {
         }
-        Utils.makeImmutable = function (obj) {
-            var copy = JSON.parse(JSON.stringify(obj));
-            return Utils.deepFreeze(copy);
-        };
-        Utils.deepFreeze = function (obj) {
-            if (Object.isFrozen(obj))
-                return obj;
-            var propNames = Object.getOwnPropertyNames(obj);
-            propNames.forEach(function (name) {
-                var prop = obj[name];
-                if (typeof prop == 'object' && !Object.isFrozen(prop))
-                    Utils.deepFreeze(prop);
-            });
-            Object.freeze(obj);
-            return obj;
-        };
         Utils.copyRefsExceptForProp = function (obj, excludeProp) {
             var copy = {};
-            var propNames = Object.getOwnPropertyNames(obj);
+            var propNames = Object.keys(obj);
             propNames.forEach(function (name) {
                 if (name !== excludeProp) {
                     copy[name] = obj[name];
@@ -33,13 +17,42 @@ define(["require", "exports"], function (require, exports) {
         return Utils;
     })();
     exports.Utils = Utils;
+    var SyncNotifiers = (function () {
+        function SyncNotifiers() {
+            this.listeners = [];
+        }
+        SyncNotifiers.prototype.onUpdated = function (callback) {
+            this.listeners.push(callback);
+        };
+        SyncNotifiers.prototype.notify = function (updated) {
+            this.listeners.forEach(function (callback) {
+                callback(updated);
+            });
+        };
+        return SyncNotifiers;
+    })();
+    exports.SyncNotifiers = SyncNotifiers;
     function MakeSyncImmutable(obj) {
+        if (obj.hasOwnProperty('__'))
+            return obj;
         var copy = {};
-        var propNames = Object.getOwnPropertyNames(obj);
-        propNames.forEach(function (name) {
+        Object.keys(obj).forEach(function (name) {
             var prop = obj[name];
             if (typeof prop === 'object') {
                 prop = MakeSyncImmutable(prop);
+                prop.__.onUpdated(function (updated) {
+                    var newCopy = Utils.copyRefsExceptForProp(copy, name);
+                    newCopy[name] = updated;
+                    newCopy['lastModified'] = updated.lastModified;
+                    var newImmutable = MakeSyncImmutable(newCopy);
+                    Object.defineProperty(newImmutable, '__', {
+                        enumerable: false,
+                        configurable: true,
+                        writable: true,
+                        value: copy.__
+                    });
+                    newImmutable.__.notify(newImmutable);
+                });
             }
             Object.defineProperty(copy, name, {
                 enumerable: true,
@@ -47,67 +60,47 @@ define(["require", "exports"], function (require, exports) {
                 writable: false,
                 value: prop
             });
-            Object.defineProperty(copy, '__', {
-                enumerable: false,
-                configurable: true,
-                writable: true,
-                value: { test: 'accessors here' }
-            });
+            if (!copy.hasOwnProperty('lastModified'))
+                copy['lastModified'] = new Date().toISOString();
+        });
+        Object.defineProperty(copy, '__', {
+            enumerable: false,
+            configurable: true,
+            writable: true,
+            value: new SyncNotifiers()
+        });
+        Object.defineProperty(copy, 'set', {
+            enumerable: false,
+            configurable: true,
+            writable: true,
+            value: function (prop, value) {
+                if (copy[prop] !== value) {
+                    var newCopy = Utils.copyRefsExceptForProp(copy, prop);
+                    newCopy[prop] = value;
+                    newCopy['lastModified'] = new Date().toISOString();
+                    var replaceWithMe = MakeSyncImmutable(newCopy);
+                    copy['__'].notify(replaceWithMe);
+                    return replaceWithMe;
+                }
+            }
+        });
+        Object.defineProperty(copy, 'remove', {
+            enumerable: false,
+            configurable: true,
+            writable: true,
+            value: function (prop) {
+                if (!copy.hasOwnProperty(prop))
+                    return copy;
+                console.log('doing remove', prop, copy);
+                var newCopy = Utils.copyRefsExceptForProp(copy, prop);
+                newCopy['lastModified'] = new Date().toISOString();
+                var replaceWithMe = MakeSyncImmutable(newCopy);
+                copy['__'].notify(replaceWithMe);
+                return replaceWithMe;
+            }
         });
         return copy;
     }
     exports.MakeSyncImmutable = MakeSyncImmutable;
-    var SyncNode = (function () {
-        function SyncNode(obj) {
-            this.listeners = [];
-            this.immutable = Utils.makeImmutable(obj);
-        }
-        SyncNode.prototype.get = function () {
-            return this.immutable;
-        };
-        SyncNode.prototype.notify = function (updated) {
-            this.listeners.map(function (callback) {
-                callback(updated);
-            });
-        };
-        SyncNode.prototype.onUpdated = function (callback) {
-            this.listeners.push(callback);
-        };
-        SyncNode.prototype.set = function (key, value) {
-            if (this.immutable[key] !== value) {
-                console.log('Doing set: ' + key, value, this.immutable);
-                var lastModified = new Date().toISOString();
-                var copy = Utils.copyRefsExceptForProp(this.immutable, key);
-                var immutableValue = Utils.makeImmutable(value);
-                copy[key] = immutableValue;
-                copy['lastModified'] = lastModified;
-                Object.freeze(copy);
-                this.immutable = copy;
-                this.notify(this.get());
-                return this.get();
-            }
-            else {
-                console.log('Skipping set: ', key, value, this.immutable);
-                return this.get();
-            }
-        };
-        SyncNode.prototype.setByPath = function (keys, value) {
-            var currKey = keys[0];
-            if (keys.length === 1) {
-                this.set(currKey, value);
-            }
-            else {
-                var next = this.immutable[currKey];
-                if (next === undefined) {
-                    var newMe = this.set(currKey, {});
-                    console.log(currKey, 'newMe: ', newMe);
-                    next = newMe[currKey];
-                }
-                next.__.setByPath(keys.splice(1, keys.length - 1), value);
-            }
-        };
-        return SyncNode;
-    })();
-    exports.SyncNode = SyncNode;
 });
 //# sourceMappingURL=SyncedObject.js.map

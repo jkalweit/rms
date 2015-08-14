@@ -27,24 +27,32 @@ export interface MainViewState {
 export class MainView extends React.Component<{}, MainViewState> {
     constructor(props: {}) {
         super(props);
-        //var rec = JSON.parse(localStorage.getItem('reconciliation')) || { tickets: {} };
-        var rec = {
+
+
+
+        var rec = JSON.parse(localStorage.getItem('reconciliation'))
+        || {
             tickets: {
-                '1': { key: '1', name: 'Justin' },
+                '1': { key: '1', name: 'Justin', orders: { '1': { name: 'Testing' } } },
                 '2': { key: '2', name: 'Larry' }
             }
         };
 
         var sync = Sync.MakeSyncImmutable(rec);
-        //sync['tickets'] = 'I CHANGED IT!';
+
+        sync.__.onUpdated((updated: Sync.ISyncImmutable) => {
+            localStorage.setItem('reconciliation', JSON.stringify(updated));
+            this.setState({ reconciliation: updated as any });
+        });
 
         /*sync.setByPath('tickets.New1.key', 'New1');
         sync.setByPath('tickets.New1.name', 'A new 1!');
         sync.setByPath('tickets.New2.key', 'New2');
         sync.setByPath('tickets.New2.name', 'A new 2!');*/
 
+
         this.state = {
-            reconciliation: sync as Models.Reconciliation,
+            reconciliation: sync as any,
             isNavOpen: false
         };
 
@@ -52,8 +60,6 @@ export class MainView extends React.Component<{}, MainViewState> {
             console.log("HEEERRRR!!!!!", updated, sync.get());
             this.setState({ reconciliation: updated });
         });*/
-
-        console.log(this.state);
 
 
         // this.socket.on('getLatestRecResponse', (data: any) => {
@@ -64,6 +70,10 @@ export class MainView extends React.Component<{}, MainViewState> {
         // });
         //
         // this.socket.emit('getLatestRec');
+    }
+    doTest() {
+      var rec = this.state.reconciliation;
+      (rec.tickets as any).set('1', 'I CHANGED IT!!!!');
     }
     closeNav() {
         this.setState({ isNavOpen: false });
@@ -85,6 +95,7 @@ export class MainView extends React.Component<{}, MainViewState> {
             </div>
             <Nav.NavigationView hash="#">
               <h1>Welcome to RMS</h1>
+              <button onClick={ this.doTest.bind(this) }>Test</button>
               <p>There will be a dashboard here later.</p>
               <p>Use the navigation above to select a location.</p>
             </Nav.NavigationView>

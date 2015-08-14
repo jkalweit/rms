@@ -1,0 +1,117 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Menu</title>
+  <link rel="stylesheet" href="../../../bower_components/font-awesome/css/font-awesome.css" />
+  <link rel="stylesheet" type="text/css" href="print-menu.css" />
+  <link rel="stylesheet" href="/bower_components/font-awesome/css/font-awesome.css" />
+  <link rel="stylesheet" type="text/css" href="/styles/print-menu.css" />
+  <script src="https://fb.me/react-0.13.3.min.js"></script>
+  <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+</head>
+
+<body>
+
+<div id="content"></div>
+<script type="text/jsx">
+
+var starters = {
+  '0': { name: 'Steak Bites', description: '', price: '(7)(12)', isPick3: false },
+  '1': { name: 'Hand-Cut Fries or Chips', description: '', details: 'cooked crispy, floppy... or flopsy!', price: '5', isPick3: true },
+  '2': { name: 'Onion Rings', description: '', price: '7', isPick3: true },
+  '3': { name: 'Mac \'n Cheese Bites', description: '', details: 'our popular fried mac \'n pepper-jack bites are just a li\'l spicy!', price: '8', isPick3: true },
+  '4': { name: 'Chicken Strips', description: '', price: '9', isPick3: true },
+  '5': { name: 'Claussen Fried Pickle Chips', description: '', details: 'why are our pickle chips better? because we use Claussen!', price: '7', isPick3: true },
+  '6': { name: 'Mozzarella Stickes', description: '(10 sticks)', details: 'golden fried, melty cheese sticks with red marinara sauce or ranch', price: '10', isPick3: true },
+  '7': { name: 'Wings', description: '(5)(10)', details: 'plain, bbq, buffalo, Frank\'s Red Hot, sweet thai, honey mustard', price: '(6)(11)', isPick3: true },
+  '8': { name: 'Pick 3 Basket', description: '', details: 'any 3 items with a star, no double items please!', price: '12', isPick3: false }
+}
+
+var cocktails = {
+  '0': { name: 'Manhatten', description: '', price: '7' },
+  '1': { name: 'Key Lime Pie', description: '', price: '7' },
+}
+
+
+var PrintPage = React.createClass({
+  render: function() {
+    return (
+      <div className="print-page">
+        { this.props.children }
+      </div>
+    );
+  }
+});
+
+var Starters = React.createClass({
+  render: function() {
+    console.log(this.props);
+    var nodes = Object.keys(this.props.starters).map(function(key) {
+        var item = this.props.starters[key];
+        console.log(item);
+        return (
+          <li className="group">
+            <span className="name">{item.name}{ item.isPick3 ? <i className="fa fa-star-o"></i> : null }</span>
+            <span className="description">{ item.description }</span>
+            <span className="price">{item.price}</span>
+            { item.details ? <span className="details">{item.details}</span> : null }
+          </li>
+        );
+      }.bind(this));
+    return (
+      <div className="starters">
+        <h2>Starters</h2>
+        <ul className="group">
+        { nodes }
+        </ul>
+      </div>
+    );
+  }
+});
+
+
+
+var Cocktails = React.createClass({
+  render: function() {
+    console.log(this.props);
+    var nodes = Object.keys(this.props.cocktails).map(function(key) {
+        var item = this.props.cocktails[key];
+        console.log(item);
+        return (
+          <li>
+            <span className="name">{ item.isPick3 ? <i className="fa fa-angle-double-right"></i> : null }{item.name}</span>
+            <span className="description">{item.desc  }</span>
+            <span className="price">{item.price}</span>
+          </li>
+        );
+      }.bind(this));
+    return (
+      <div className="cocktails">
+        <h2>Cocktails</h2>
+        <ul className="group">
+        { nodes }
+        </ul>
+      </div>
+    );
+  }
+});
+
+
+
+
+React.render(
+  <PrintPage>
+    <Starters starters={starters}></Starters>
+    <Cocktails cocktails={cocktails}></Cocktails>
+  </PrintPage>,
+  document.getElementById('content')
+);
+
+</script>
+
+
+</body>
+</html>

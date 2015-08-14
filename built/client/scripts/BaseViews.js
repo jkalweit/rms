@@ -19,14 +19,8 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
             Object.keys(next).forEach(function (key) {
                 if (typeof next[key] === 'function') {
                 }
-                else if (curr[key] === null || next[key] === null) {
-                    equal = equal && curr[key] === next[key];
-                }
-                else if (!curr[key].hasOwnProperty('lastModified') || !next[key].hasOwnProperty('lastModified')) {
-                    equal = equal && (curr[key] === next[key]);
-                }
                 else {
-                    equal = equal && (curr[key].lastModified === next[key].lastModified);
+                    equal = equal && curr[key] === next[key];
                 }
             });
             return !equal;

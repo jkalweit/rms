@@ -12,19 +12,24 @@ export class SyncView<P, S> extends React.Component<P, S> {
             return curr !== next;
         }
         Object.keys(next).forEach((key) => {
-            //console.log(key, curr, next);
             if (typeof next[key] === 'function') {
                 //ignore functions
-            }
-            else if(curr[key] === null || next[key] === null) {
-              equal = equal && curr[key] === next[key];
-            }
-            else if (!curr[key].hasOwnProperty('lastModified') || !next[key].hasOwnProperty('lastModified')) {
-                //console.log(this.name + ' has no lastModified: ' + key + ': ', curr[key], next[key], curr[key] === next[key]);
-                equal = equal && (curr[key] === next[key]);
             } else {
-                equal = equal && (curr[key].lastModified === next[key].lastModified);
+                equal = equal && curr[key] === next[key];
             }
+            //if (!equal) console.log('      NOT EQUAL', key);
+            //else console.log('EQUAL', key);
+            // //console.log(key, curr, next);
+
+            // else if(curr[key] === null || next[key] === null) {
+            //   equal = equal && curr[key] === next[key];
+            // }
+            // else if (!curr[key].hasOwnProperty('lastModified') || !next[key].hasOwnProperty('lastModified')) {
+            //     //console.log(this.name + ' has no lastModified: ' + key + ': ', curr[key], next[key], curr[key] === next[key]);
+            //     equal = equal && (curr[key] === next[key]);
+            // } else {
+            //     equal = equal && (curr[key].lastModified === next[key].lastModified);
+            // }
         });
         return !equal;
     }

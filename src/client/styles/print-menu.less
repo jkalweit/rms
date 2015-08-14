@@ -1,0 +1,131 @@
+// out: ../../../built/client/styles/print-menu.css, sourcemap: true
+
+
+@import "colors";
+
+
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+@font-size: 16px;
+
+@text-color-darker: rgba(0,0,0,1);
+@text-color-dark: rgba(0,0,0,0.87);
+@text-color: rgba(0,0,0,0.75);
+@text-color-light: rgba(0,0,0,0.54);
+@text-color-lighter: rgba(0,0,0,0.38);
+
+
+.group:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  font-size: @font-size;
+  color: @text-color;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+.h {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  text-transform: uppercase;
+  color: @text-color-light;
+}
+
+.generate-h(5);
+.generate-h(@n, @i: 1) when (@i =< @n) {
+  h@{i} {
+    .h;
+  }
+  .generate-h(@n, (@i + 1));
+}
+
+
+ul {
+  list-style: none;
+  margin: 0px;
+  padding: 0px;
+
+  li {
+    padding: 10px;
+    clear: both;
+
+    span {
+      padding: 0px;
+    }
+
+    .name {
+      float: left;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: @text-color-dark;
+
+      i {
+        padding-left: 5px;
+      }
+    }
+
+    .description {
+      float: left;
+      font-weight: bold;
+      padding-left: 10px;
+      text-align: center;
+    }
+
+    .details {
+      clear: both;
+      display: inline-block;
+      font-weight: bold;
+      padding-top: 10px;
+      padding-left: 10px;
+      width: 100%;
+      color: @text-color-light;
+    }
+
+    .price {
+      float: right;
+      font-weight: bold;
+    }
+  }
+}
+
+.print-page {
+  border: 1px black solid;
+  width: 100%;
+  max-width: 800px;
+  height: 100%;
+  min-height: 900px;
+  max-height: 1000px;
+  background-color: @mdc-blue-50;
+
+  .menu-column {
+    float: left;
+    width: 50%;
+    min-width: 300px;
+  }
+
+  .starters {
+    .menu-column;
+    background-color: @mdc-red-50;
+  }
+
+  .cocktails {
+    .menu-column;
+    background-color: @mdc-purple-50;
+  }
+
+
+}

@@ -25,20 +25,16 @@ export class ReconciliationView extends Base.SyncView<ReconciliationViewProps, R
         //console.log('Select ticket: ' + JSON.stringify(ticket));
         this.setState({ selectedTicket: ticket });
     }
-    doTest() {
-        console.log('Doing test...');
-
-    }
     render() {
-        console.log('   Render: Reconciliation');
+        console.log(this.name, 'Render');
         return (
             <div className="reconciliation">
-            {
             <TicketsView tickets={this.props.reconciliation.tickets}
             onSelectTicket={ this.handleSelectTicket.bind(this) }
             selectedTicket={ this.state.selectedTicket }></TicketsView>
-            /*
-            { this.state.selectedTicket ? (<TicketDetailsView ticket={this.state.selectedTicket}></TicketDetailsView>) : null }
+            { this.state.selectedTicket ? (<TicketDetailsView ticket={this.state.selectedTicket} onRemove={ (ticket: Models.Ticket) => { (this.props.reconciliation.tickets as any).remove(ticket.key); this.setState( { selectedTicket: null }); }}></TicketDetailsView>) : null }
+
+            { /*
             <menu.MenuView menu={this.props.menu}></menu.MenuView>
             */ }
             </div>
@@ -64,13 +60,12 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
     filterInput: any;
     constructor(props: TicketsViewProps) {
         super(props);
-        console.log('props: ', props);
         this.state = {
             filteredTickets: this.getFilteredTickets('', this.props.tickets)
         };
     }
     componentWillReceiveProps(nextProps: TicketsViewProps) {
-      //console.log('TicketsView receive new props:', nextProps);
+      console.log('TicketsView receive new props:', nextProps);
       if(nextProps.tickets !== this.props.tickets) {
         this.updateFilteredTickets(nextProps.tickets, this.filterInput.value);
       }
@@ -83,7 +78,8 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
                 name: e.target.value
             };
             e.target.value = '';
-            (this.props.tickets as any).__.set(ticket.key, ticket);
+            var newTickets = (this.props.tickets as any).set(ticket.key, ticket);
+            this.props.onSelectTicket(newTickets[ticket.key]);
             // Store.insertTicket(ticket, (immutable: models.TicketModel) => {
             //     this.props.onSelectTicket(immutable);
             //     this.updateFilteredTickets(this.props.tickets, e.target.value);
@@ -97,7 +93,7 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
       this.setState({ filteredTickets: filteredTickets });
     }
     getFilteredTickets(filter: string, tickets: {[key: string]: Models.Ticket}) {
-        console.log('get filtered tickets: ', tickets);
+        //console.log('get filtered tickets: ', tickets);
         var normalized = filter.trim().toLowerCase();
         if (normalized.length === 0) return tickets;
 
@@ -111,8 +107,9 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
         return filtered;
     }
     render() {
+        console.log(this.name, 'render');
         var tickets = this.state.filteredTickets;
-        console.log('tickets: ', tickets);
+        //console.log('tickets: ', tickets);
         var nodes = Object.keys(tickets).map((key) => {
             if(key !== 'lastModified') {
             var ticket = tickets[key];
@@ -156,6 +153,26 @@ export class TicketView extends Base.SyncView<TicketViewProps, {}> {
         console.log('       Render: Ticket: ' + ticket.name);
         return (
             <li className={ this.props.isSelected ? 'active' : '' } onClick={() => { this.props.onSelect(ticket) } }>{ticket.name}</li>
+        );
+    }
+}
+
+
+
+export interface TicketDetailsViewProps {
+    ticket: Models.Ticket;
+    onRemove: (ticket: Models.Ticket) => void;
+}
+export class TicketDetailsView extends Base.SyncView<TicketDetailsViewProps, {}> {
+    name: string = '        TicketDetailsView';
+    render() {
+        var ticket = this.props.ticket;
+        console.log(this.name, ticket.name);
+        return (
+            <div className="ticket-details">
+              <h3>{ticket.name}</h3>
+              <button onClick={() => { this.props.onRemove(this.props.ticket); } }>Delete</button>
+            </div>
         );
     }
 }

@@ -17,12 +17,10 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         ReconciliationView.prototype.handleSelectTicket = function (ticket) {
             this.setState({ selectedTicket: ticket });
         };
-        ReconciliationView.prototype.doTest = function () {
-            console.log('Doing test...');
-        };
         ReconciliationView.prototype.render = function () {
-            console.log('   Render: Reconciliation');
-            return (React.createElement("div", {"className": "reconciliation"}, React.createElement(TicketsView, {"tickets": this.props.reconciliation.tickets, "onSelectTicket": this.handleSelectTicket.bind(this), "selectedTicket": this.state.selectedTicket})));
+            var _this = this;
+            console.log(this.name, 'Render');
+            return (React.createElement("div", {"className": "reconciliation"}, React.createElement(TicketsView, {"tickets": this.props.reconciliation.tickets, "onSelectTicket": this.handleSelectTicket.bind(this), "selectedTicket": this.state.selectedTicket}), this.state.selectedTicket ? (React.createElement(TicketDetailsView, {"ticket": this.state.selectedTicket, "onRemove": function (ticket) { _this.props.reconciliation.tickets.remove(ticket.key); _this.setState({ selectedTicket: null }); }})) : null));
         };
         return ReconciliationView;
     })(Base.SyncView);
@@ -32,12 +30,12 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         function TicketsView(props) {
             _super.call(this, props);
             this.name = '  TicketsView';
-            console.log('props: ', props);
             this.state = {
                 filteredTickets: this.getFilteredTickets('', this.props.tickets)
             };
         }
         TicketsView.prototype.componentWillReceiveProps = function (nextProps) {
+            console.log('TicketsView receive new props:', nextProps);
             if (nextProps.tickets !== this.props.tickets) {
                 this.updateFilteredTickets(nextProps.tickets, this.filterInput.value);
             }
@@ -50,7 +48,8 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
                     name: e.target.value
                 };
                 e.target.value = '';
-                this.props.tickets.__.set(ticket.key, ticket);
+                var newTickets = this.props.tickets.set(ticket.key, ticket);
+                this.props.onSelectTicket(newTickets[ticket.key]);
             }
             else {
                 this.updateFilteredTickets(this.props.tickets, e.target.value);
@@ -61,7 +60,6 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
             this.setState({ filteredTickets: filteredTickets });
         };
         TicketsView.prototype.getFilteredTickets = function (filter, tickets) {
-            console.log('get filtered tickets: ', tickets);
             var normalized = filter.trim().toLowerCase();
             if (normalized.length === 0)
                 return tickets;
@@ -75,8 +73,8 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         };
         TicketsView.prototype.render = function () {
             var _this = this;
+            console.log(this.name, 'render');
             var tickets = this.state.filteredTickets;
-            console.log('tickets: ', tickets);
             var nodes = Object.keys(tickets).map(function (key) {
                 if (key !== 'lastModified') {
                     var ticket = tickets[key];
@@ -113,5 +111,20 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         return TicketView;
     })(Base.SyncView);
     exports.TicketView = TicketView;
+    var TicketDetailsView = (function (_super) {
+        __extends(TicketDetailsView, _super);
+        function TicketDetailsView() {
+            _super.apply(this, arguments);
+            this.name = '        TicketDetailsView';
+        }
+        TicketDetailsView.prototype.render = function () {
+            var _this = this;
+            var ticket = this.props.ticket;
+            console.log(this.name, ticket.name);
+            return (React.createElement("div", {"className": "ticket-details"}, React.createElement("h3", null, ticket.name), React.createElement("button", {"onClick": function () { _this.props.onRemove(_this.props.ticket); }}, "Delete")));
+        };
+        return TicketDetailsView;
+    })(Base.SyncView);
+    exports.TicketDetailsView = TicketDetailsView;
 });
 //# sourceMappingURL=Reconciliation.js.map

@@ -1,0 +1,127 @@
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.group:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+body {
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.75);
+  margin: 0;
+  padding: 0;
+}
+.h {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.54);
+}
+h1 {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.54);
+}
+h2 {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.54);
+}
+h3 {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.54);
+}
+h4 {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.54);
+}
+h5 {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.54);
+}
+ul {
+  list-style: none;
+  margin: 0px;
+  padding: 0px;
+}
+ul li {
+  padding: 10px;
+  clear: both;
+}
+ul li span {
+  padding: 0px;
+}
+ul li .name {
+  float: left;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.87);
+}
+ul li .name i {
+  padding-left: 5px;
+}
+ul li .description {
+  float: left;
+  font-weight: bold;
+  padding-left: 10px;
+  text-align: center;
+}
+ul li .details {
+  clear: both;
+  display: inline-block;
+  font-weight: bold;
+  padding-top: 10px;
+  padding-left: 10px;
+  width: 100%;
+  color: rgba(0, 0, 0, 0.54);
+}
+ul li .price {
+  float: right;
+  font-weight: bold;
+}
+.print-page {
+  border: 1px black solid;
+  width: 100%;
+  max-width: 800px;
+  height: 100%;
+  min-height: 900px;
+  max-height: 1000px;
+  background-color: #e3f2fd;
+}
+.print-page .menu-column {
+  float: left;
+  width: 50%;
+  min-width: 300px;
+}
+.print-page .starters {
+  float: left;
+  width: 50%;
+  min-width: 300px;
+  background-color: #ffebee;
+}
+.print-page .cocktails {
+  float: left;
+  width: 50%;
+  min-width: 300px;
+  background-color: #f3e5f5;
+}
