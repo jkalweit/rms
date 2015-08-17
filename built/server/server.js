@@ -3,26 +3,29 @@ var express = require('express');
 var http = require('http');
 var path = require('path');
 var socketio = require('socket.io');
+var Sync = require('./SyncNodeServer');
 var app = express();
 var server = http.createServer(app);
 var io = socketio(server);
-var reconciliation = {
+var defaultRec = {
     lastModified: new Date().toISOString(),
-    name: 'Test Rec',
+    name: 'New Rec',
     tickets: {
-        '0': { key: '0', name: 'Justin' }
+        '0': { key: '0', name: 'Justin2' }
+    },
+    menu: {
+        categories: {
+            '0': {
+                key: '0',
+                name: 'Dinner Entrees',
+                items: {
+                    '0': { key: '0', name: '14oz Ribeye', price: '20' }
+                }
+            }
+        }
     }
 };
-var namespace = io.of('/reconciliation');
-namespace.on('connection', function (socket) {
-    console.log('someone connected to reconciliation');
-    socket.on('getLatest', function (clientLastModified) {
-        console.log('getLatest', reconciliation.lastModified, clientLastModified);
-        if (!clientLastModified || clientLastModified < reconciliation.lastModified) {
-            socket.emit('updated', JSON.stringify(reconciliation));
-        }
-    });
-});
+var ReconciliationServer = new Sync.SyncNodeServer('reconciliation', io, defaultRec);
 app.use('/', function (req, res, next) {
     if (req.url === '/') {
         res.writeHead('content-type', 'text/plain');
@@ -30,6 +33,7 @@ app.use('/', function (req, res, next) {
         res.write('<html lang="en">');
         res.write('  <head>');
         res.write('    <title>RMS</title>');
+        res.write('    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">');
         res.write('    <link rel="stylesheet" href="/bower_components/font-awesome/css/font-awesome.css" />');
         res.write('    <link rel="stylesheet" type="text/css" href="/styles/site.css" />');
         res.write('  </head>');
@@ -47,4 +51,4 @@ var port = process.env.PORT || 1337;
 server.listen(port, function () {
     console.log('Express is listening on %s:%s', server.address().address, server.address().port);
 });
-//# sourceMappingURL=server.js.map
+//# sourceMappingURL=Server.js.map

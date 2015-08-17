@@ -2,16 +2,20 @@
 
 
 import React = require('react/addons');
+//import Hammer = require('hammerjs');
 import Sync = require('./SyncNodeSocket');
 import Models = require('./Models');
 import Nav = require('./Navigation');
 import Rec = require('./Reconciliation');
+import Menu = require('./Menu');
 
 'use strict';
 
+//declare var Hammer: any;
 
 export class Bootstrap {
     start() {
+        //var hammertime = new Hammer(document.body);
         React.initializeTouchEvents(true);
         React.render(React.createElement(MainView, null), document.body);
     }
@@ -23,24 +27,37 @@ export class Bootstrap {
 export interface MainViewState {
     reconciliation?: Models.Reconciliation;
     isNavOpen?: boolean;
+    syncSocketStatus?: string;
 }
 export class MainView extends React.Component<{}, MainViewState> {
     constructor(props: {}) {
         super(props);
 
+        var defaultRec: Models.Reconciliation;
+        defaultRec = {
+          name: 'Test Rec',
+          tickets: { '0': { key: '0', name: 'Justin2' }},
+          menu: { categories: { items: {} } }
+        };
 
-        var sync = new Sync.SyncNodeSocket<Models.Reconciliation>('/reconciliation');
+        var sync = new Sync.SyncNodeSocket<Models.Reconciliation>('/reconciliation', defaultRec);
+        sync.onStatusChanged = (path: string, status: string) => {
+          this.setState({ syncSocketStatus: status });
+          (this.refs['logView'] as LogView).addItem(path, status);
+        };
 
         sync.onUpdated((updated: Models.Reconciliation) => {
             console.log('     setting state: ', updated);
             this.setState({ reconciliation: updated });
         });
 
-        console.log('sync.get: ', sync.get());
+
+        //console.log('sync.get: ', sync.get());
 
         this.state = {
             reconciliation: sync.get(),
-            isNavOpen: false
+            isNavOpen: false,
+            syncSocketStatus: sync.status
         };
     }
     closeNav() {
@@ -49,7 +66,7 @@ export class MainView extends React.Component<{}, MainViewState> {
     render() {
         //var rec = this.state.reconciliation;
         console.log('Render: MainView');
-        var className = this.state.isNavOpen ? 'open' : '';
+        var className = (this.state.isNavOpen ? 'open' : '');
         return (
             <div>
             <div className="sticky-header">
@@ -65,10 +82,11 @@ export class MainView extends React.Component<{}, MainViewState> {
               <h1>Welcome to RMS</h1>
               <p>There will be a dashboard here later.</p>
               <p>Use the navigation above to select a location.</p>
+              <LogView ref="logView"></LogView>
             </Nav.NavigationView>
             <Nav.NavigationView hash="#reconciliation"><Rec.ReconciliationView reconciliation={this.state.reconciliation}></Rec.ReconciliationView></Nav.NavigationView>
-            { /*
-            <Nav.NavigationView hash="#menu"><menuViews.MenuEditView menu={rec.menu}></menuViews.MenuEditView></Nav.NavigationView>
+            <Nav.NavigationView hash="#menu"><Menu.MenuEdit menu={this.state.reconciliation.menu}></Menu.MenuEdit></Nav.NavigationView>
+
             <Nav.NavigationView hash="#kitchen"><h1>The kitchen!</h1></Nav.NavigationView>
           */  }
           { /*
@@ -80,4 +98,42 @@ export class MainView extends React.Component<{}, MainViewState> {
             </div>
         );
     }
+}
+
+
+export class LogItem {
+  stamp: string;
+  path: string;
+  message: string;
+}
+export class LogViewState {
+  items: LogItem[];
+}
+export class LogView extends React.Component<any, LogViewState> {
+  constructor(props: any) {
+    super(props);
+    this.state = { items: [] };
+  }
+  addItem(path: string, message: string) {
+    var newItem = { stamp: new Date().toLocaleString(), path: path, message: message };
+    var newArray = [newItem].concat(this.state.items); //Use concat to make a new array and avoid changing immutable state
+    this.setState({ items: newArray });
+  }
+  render() {
+    var nodes = this.state.items.map((item: LogItem) => {
+      return (
+          <li key={item.stamp}>
+            { item.stamp } { item.path } { item.message }
+          </li>
+      );
+    });
+    return (
+      <div className="log-view">
+        <h1>Log</h1>
+        <ul>
+          { nodes }
+        </ul>
+      </div>
+    );
+  }
 }

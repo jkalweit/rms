@@ -16,6 +16,12 @@
     },
     "moment/moment.d.ts": {
       "commit": "b993c934f58fdcd71ecc9829796e96c7229b58a6"
+    },
+    "hammerjs/hammerjs.d.ts": {
+      "commit": "5109e1269d6ab8e8e73b1a5e85d8ceb836d3099f"
+    },
+    "touch-events/touch-events.d.ts": {
+      "commit": "5109e1269d6ab8e8e73b1a5e85d8ceb836d3099f"
     }
   }
 }

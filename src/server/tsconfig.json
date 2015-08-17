@@ -9,9 +9,9 @@
         "./*.tsx"
     ],
     "files": [
-        "./FilePersistence.ts",
-        "./db.ts",
-        "./rms-rest.ts",
-        "./server.ts"
+        "./Persistence.ts",
+        "./Server.ts",
+        "./SyncNodeServer.ts",
+        "./db.ts"
     ]
 }

@@ -15,10 +15,11 @@
         "./App.ts",
         "./Models.ts",
         "./SyncNode.ts",
+        "./SyncNodeSocket.ts",
         "./BaseViews.tsx",
+        "./Menu.tsx",
         "./Navigation.tsx",
         "./Reconciliation.tsx",
-        "./SyncNodeSocket.tsx",
         "./Views.tsx"
     ]
 }

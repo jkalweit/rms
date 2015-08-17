@@ -7,7 +7,8 @@ require.config({
         "react": "/bower_components/react/react",
         "react/addons": "/bower_components/react/react-with-addons",
         "moment": "/bower_components/moment/moment",
-        "socket.io": "/socket.io/socket.io"
+        "socket.io": "/socket.io/socket.io",
+        "hammerjs": "/bower_components/hammerjs/hammer"
     }
 });
 

@@ -4,7 +4,7 @@
 import React = require('react/addons');
 import Models = require('./Models');
 import Base = require('./BaseViews');
-
+import Menu = require('./Menu');
 
 
 export interface ReconciliationViewProps {
@@ -29,14 +29,11 @@ export class ReconciliationView extends Base.SyncView<ReconciliationViewProps, R
         console.log(this.name, 'Render');
         return (
             <div className="reconciliation">
-            <TicketsView tickets={this.props.reconciliation.tickets}
+            <Tickets tickets={this.props.reconciliation.tickets}
             onSelectTicket={ this.handleSelectTicket.bind(this) }
-            selectedTicket={ this.state.selectedTicket }></TicketsView>
+            selectedTicket={ this.state.selectedTicket }></Tickets>
             { this.state.selectedTicket ? (<TicketDetailsView ticket={this.state.selectedTicket} onRemove={ (ticket: Models.Ticket) => { (this.props.reconciliation.tickets as any).remove(ticket.key); this.setState( { selectedTicket: null }); }}></TicketDetailsView>) : null }
-
-            { /*
-            <menu.MenuView menu={this.props.menu}></menu.MenuView>
-            */ }
+            <Menu.Menu menu={this.props.reconciliation.menu}></Menu.Menu>
             </div>
         );
     }
@@ -47,25 +44,25 @@ export class ReconciliationView extends Base.SyncView<ReconciliationViewProps, R
 
 
 
-export interface TicketsViewProps {
+export interface TicketsProps {
     tickets: {[key: string]: Models.Ticket};
     selectedTicket: Models.Ticket;
     onSelectTicket: (ticket: Models.Ticket) => void;
 }
-export interface TicketsViewState {
+export interface TicketsState {
     filteredTickets?: { [key: string]: Models.Ticket };
 }
-export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewState> {
-    name: string = '  TicketsView';
+export class Tickets extends Base.SyncView<TicketsProps, TicketsState> {
+    name: string = '  Tickets';
     filterInput: any;
-    constructor(props: TicketsViewProps) {
+    constructor(props: TicketsProps) {
         super(props);
         this.state = {
             filteredTickets: this.getFilteredTickets('', this.props.tickets)
         };
     }
-    componentWillReceiveProps(nextProps: TicketsViewProps) {
-      console.log('TicketsView receive new props:', nextProps);
+    componentWillReceiveProps(nextProps: TicketsProps) {
+      //console.log('TicketsView receive new props:', nextProps);
       if(nextProps.tickets !== this.props.tickets) {
         this.updateFilteredTickets(nextProps.tickets, this.filterInput.value);
       }
@@ -78,8 +75,9 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
                 name: e.target.value
             };
             e.target.value = '';
-            var newTickets = (this.props.tickets as any).set(ticket.key, ticket);
-            this.props.onSelectTicket(newTickets[ticket.key]);
+            var result = (this.props.tickets as any).set(ticket.key, ticket);
+            var newTickets = result.parentImmutable;
+            this.props.onSelectTicket(result.value);
             // Store.insertTicket(ticket, (immutable: models.TicketModel) => {
             //     this.props.onSelectTicket(immutable);
             //     this.updateFilteredTickets(this.props.tickets, e.target.value);
@@ -114,12 +112,11 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
             if(key !== 'lastModified') {
             var ticket = tickets[key];
             var isSelected = this.props.selectedTicket === ticket;
-            return (<TicketView key={key} isSelected={isSelected} ticket={ticket} onSelect={(ticket) => { this.props.onSelectTicket(ticket) } }></TicketView>);
+            return (<Ticket key={key} isSelected={isSelected} ticket={ticket} onSelect={(ticket) => { this.props.onSelectTicket(ticket) } }></Ticket>);
           }
         });
         return (
             <div className="ticket-list">
-              <h3>Tickets</h3>
               <input className="name-filter" ref={(el) => {
                   var input = (React.findDOMNode(el) as any);
                   if (input) {
@@ -140,19 +137,21 @@ export class TicketsView extends Base.SyncView<TicketsViewProps, TicketsViewStat
 
 
 
-export interface TicketViewProps {
+export interface TicketProps {
     key: string;
     isSelected: boolean;
     ticket: Models.Ticket;
     onSelect: (ticket: Models.Ticket) => void;
 }
-export class TicketView extends Base.SyncView<TicketViewProps, {}> {
+export class Ticket extends Base.SyncView<TicketProps, {}> {
     name: string = '    TicketView';
     render() {
+        var classNames = this.preRender();
+        if(this.props.isSelected) classNames.push('active');
         var ticket = this.props.ticket;
         console.log('       Render: Ticket: ' + ticket.name);
         return (
-            <li className={ this.props.isSelected ? 'active' : '' } onClick={() => { this.props.onSelect(ticket) } }>{ticket.name}</li>
+            <li className={ classNames.join(' ') } onClick={() => { this.props.onSelect(ticket) } }>{ticket.name}</li>
         );
     }
 }

@@ -3,18 +3,13 @@
 @import "colors";
 
 .reconciliation {
-  .scroll;
   .noselect;
 
-  position: fixed;
-  top: @header-height;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 0; bottom: 0; left: 0; right: 0;
   background-color: @mdc-yellow-100;
 
   .ticket, .ticket-list, .ticket-details {
-    .scroll;
     .h {
       width: 100%;
       color: #FFFFFF;
@@ -45,20 +40,28 @@
   .ticket-list {
     background-color: @mdc-purple-100;
     width: 200px;
-    height: 100%;
-    float: left;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    bottom: 0px;
 
-    @media screen and (max-width: @mobile-width) {
-      width: 100%;
-    }
+    // @media screen and (max-width: @mobile-width) {
+    //   width: 100%;
+    // }
+
+    @name-filter-height: 40px;
 
     .name-filter {
       width: 100%;
-      height: 2em;
+      height: @name-filter-height;
       padding: 10px;
     }
 
     ul {
+      .scroll-vertical;
+      position: absolute;
+      top: @name-filter-height; bottom: 0;
+      left: 0; right: 0;
       list-style: none;
       margin: 0;
       padding: 0;
@@ -71,8 +74,8 @@
         padding: 10px;
         border-bottom: 1px solid @mdc-black-lighter;
 
-        transition: all 100ms ease-out;
-        transition-property: color, background-color;
+        //transition: all 100ms ease-out;
+        //transition-property: color, background-color;
 
         &:hover {
           color: #FFFFFF;
@@ -89,15 +92,15 @@
   }
 
   .ticket-details {
-    float: left;
+    position: absolute;
+    top: 5px; bottom: 5px;
+    left: 205px; width: 300px;
     background-color: #FFFFFF;
     margin: 10px;
-    width: 300px;
-    min-height: 300px;
     box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
 
-    @media screen and (max-width: @mobile-width) {
-      width: 100%;
-    }
+    // @media screen and (max-width: @mobile-width) {
+    //   width: 100%;
+    // }
   }
 }

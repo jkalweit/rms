@@ -5,11 +5,27 @@
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
-.scroll {
-  overflow: scroll;
+.group:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.flash {
+  transition: all 100ms ease-out;
+  color: 'white';
+  box-shadow: 0px 0px 0px 0px #03a9f4, 0px 0px 0px 0px #ffffff;
+}
+.flash.glow {
+  transition: all 500ms ease-out;
+  color: 'red';
+  box-shadow: 0px 0px 10px 5px #03a9f4, 0px 0px 10px 5px #ffffff;
+  z-index: 10;
+}
+.scroll-vertical {
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 body {
-  overflow: scroll;
   font-family: 'Roboto', sans-serif;
   font-size: 16px;
   color: rgba(0, 0, 0, 0.54);
@@ -246,7 +262,7 @@ button {
   cursor: pointer;
   transition: all 100ms ease-out;
   transition-property: color, background-color;
-  height: 0px;
+  display: none;
   float: right;
 }
 .sticky-header ul .hamburger-icon:hover {
@@ -271,6 +287,7 @@ button {
   .sticky-header ul li {
     height: 50px;
     background-color: #4caf50;
+    overflow: hidden;
   }
   .sticky-header .hamburger {
     display: none;
@@ -286,13 +303,17 @@ button {
     width: 100%;
     border: 1px solid rgba(0, 0, 0, 0.12);
   }
+  .sticky-header ul .hamburger-icon {
+    display: block;
+    height: 50px;
+  }
 }
 .navigation-view {
-  position: fixed;
+  position: absolute;
   top: 50px;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
   background-color: #fffde7;
   transition: opacity 200ms;
 }
@@ -355,23 +376,29 @@ button {
 }
 .menu {
   background-color: #e3f2fd;
-  float: right;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
   width: 400px;
-  height: 100%;
-}
-@media screen and (max-width: 962px) {
-  .menu {
-    width: 100%;
-  }
 }
 .menu .menu-categories,
 .menu .menu-items {
   background-color: #bbdefb;
-  float: right;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 200px;
 }
 .menu .menu-categories ul,
 .menu .menu-items ul {
+  overflow-y: scroll;
+  overflow-x: hidden;
   list-style: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
   margin: 0;
   padding: 0;
 }
@@ -383,12 +410,6 @@ button {
   margin: 0;
   padding: 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  transition: all 100ms ease-out;
-  transition-property: color, background-color;
-}
-.menu .menu-categories ul li .btn,
-.menu .menu-items ul li .btn {
-  margin: 0;
 }
 .menu .menu-categories ul li:hover,
 .menu .menu-items ul li:hover {
@@ -402,8 +423,28 @@ button {
 }
 .menu .menu-categories ul li:active,
 .menu .menu-items ul li:active {
+  transition: all 0ms ease-out;
   color: #FFFFFF;
   background-color: #0d47a1;
+}
+.menu .menu-categories ul li .name,
+.menu .menu-items ul li .name {
+  float: left;
+  text-transform: uppercase;
+}
+.menu .menu-categories ul li .name i,
+.menu .menu-items ul li .name i {
+  padding-left: 5px;
+}
+.menu .menu-categories ul li .price,
+.menu .menu-items ul li .price {
+  float: right;
+}
+.menu .menu-categories {
+  right: 0;
+}
+.menu .menu-items {
+  right: 200px;
 }
 .menu .menu-categories,
 .menu .menu-items {
@@ -515,24 +556,18 @@ button {
   padding: 10px;
 }
 .reconciliation {
-  overflow: scroll;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  position: fixed;
-  top: 50px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
   background-color: #fff9c4;
-}
-.reconciliation .ticket,
-.reconciliation .ticket-list,
-.reconciliation .ticket-details {
-  overflow: scroll;
 }
 .reconciliation .ticket .h,
 .reconciliation .ticket-list .h,
@@ -604,20 +639,24 @@ button {
 .reconciliation .ticket-list {
   background-color: #e1bee7;
   width: 200px;
-  height: 100%;
-  float: left;
-}
-@media screen and (max-width: 962px) {
-  .reconciliation .ticket-list {
-    width: 100%;
-  }
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  bottom: 0px;
 }
 .reconciliation .ticket-list .name-filter {
   width: 100%;
-  height: 2em;
+  height: 40px;
   padding: 10px;
 }
 .reconciliation .ticket-list ul {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  position: absolute;
+  top: 40px;
+  bottom: 0;
+  left: 0;
+  right: 0;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -629,8 +668,6 @@ button {
   margin: 0;
   padding: 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  transition: all 100ms ease-out;
-  transition-property: color, background-color;
 }
 .reconciliation .ticket-list ul li:hover {
   color: #FFFFFF;
@@ -642,15 +679,12 @@ button {
   background-color: #9c27b0;
 }
 .reconciliation .ticket-details {
-  float: left;
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 205px;
+  width: 300px;
   background-color: #FFFFFF;
   margin: 10px;
-  width: 300px;
-  min-height: 300px;
   box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
-}
-@media screen and (max-width: 962px) {
-  .reconciliation .ticket-details {
-    width: 100%;
-  }
 }
