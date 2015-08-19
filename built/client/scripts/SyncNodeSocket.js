@@ -1,6 +1,7 @@
 /// <reference path="./typings/tsd.d.ts" />
-define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (require, exports, io, Sync, Logger) {
+define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (require, exports, io, Sync, Logger2) {
     "use strict";
+    var Log = Logger2.Log;
     var SyncNodeSocket = (function () {
         function SyncNodeSocket(path, defaultObject) {
             var _this = this;
@@ -17,13 +18,13 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
             console.log('Connecting to namespace: \'' + socketHost + '\'');
             this.server = io(socketHost);
             this.server.on('disconnect', function () {
-                Logger.Log.addItem(_this.path, 'Disconnected');
+                Log.log(_this.path, 'Disconnected');
                 console.log('*************DISCONNECTED');
                 _this.status = 'Disconnected';
                 _this.updateStatus(_this.status);
             });
             this.server.on('reconnect', function (number) {
-                Logger.Log.addItem(_this.path, 'Reconnected after tries: ' + number);
+                Log.log(_this.path, 'Reconnected after tries: ' + number);
                 console.log('*************Reconnected');
                 _this.status = 'Connected';
                 _this.updateStatus(_this.status);
@@ -32,22 +33,30 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
                 }, 2000);
             });
             this.server.on('reconnect_failed', function (number) {
-                Logger.Log.addItem(_this.path, 'Reconnection Failed. Number of tries: ' + number);
+                Log.error(_this.path, 'Reconnection Failed. Number of tries: ' + number);
                 console.log('*************************Reconnection failed.');
             });
             this.server.on('update', function (merge) {
                 var mergeObj = JSON.parse(merge);
+                Log.debug(_this.path, 'received update: ' + merge);
                 console.log('*************handle update: ', mergeObj);
                 _this.updatesDisabled = true;
                 _this.syncNode['local'].merge(mergeObj);
                 _this.updatesDisabled = false;
             });
             this.server.on('latest', function (latest) {
-                var latestObj = JSON.parse(latest);
-                console.log('handle latest: ', latestObj);
-                _this.updatesDisabled = true;
-                _this.syncNode.set('local', latestObj);
-                _this.updatesDisabled = false;
+                if (!latest) {
+                    console.log('already has latest.');
+                    Log.debug(_this.path, 'already has latest.');
+                }
+                else {
+                    var latestObj = JSON.parse(latest);
+                    Log.debug(_this.path, 'Received latest: ' + latest.lastModified);
+                    console.log('handle latest: ', latestObj);
+                    _this.updatesDisabled = true;
+                    _this.syncNode.set('local', latestObj);
+                    _this.updatesDisabled = false;
+                }
             });
             this.getLatest();
         }

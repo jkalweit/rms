@@ -326,6 +326,12 @@ button {
 .log-view ul {
   list-style: none;
 }
+.log-view ul li.debug {
+  background-color: #c8e6c9;
+}
+.log-view ul li.error {
+  background-color: #ffcdd2;
+}
 .log-view ul li .timestamp {
   padding-right: 5px;
   color: #388e3c;

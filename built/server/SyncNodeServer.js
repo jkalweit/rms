@@ -20,8 +20,12 @@ var SyncNodeServer = (function () {
             socket.on('getLatest', function (clientLastModified) {
                 console.log('getLatest', _this.data.lastModified, clientLastModified);
                 if (!clientLastModified || clientLastModified < _this.data.lastModified) {
-                    console.log('sending this.data', _this.data);
+                    console.log('sending latest', _this.data);
                     socket.emit('latest', JSON.stringify(_this.data));
+                }
+                else {
+                    console.log('already has latest.');
+                    socket.emit('latest', null);
                 }
             });
             function doMerge(obj, merge) {

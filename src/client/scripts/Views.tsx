@@ -116,7 +116,7 @@ export class LogView extends React.Component<any, LogViewState> {
   render() {
     var nodes = this.state.items.map((item: Logger.LogItem) => {
       return (
-          <li key={item.stamp}>
+          <li className={item.type} key={item.stamp}>
             <span className="timestamp">{ item.stamp }</span>
             <span className="path">{ item.path }</span>
             <span className="message">{ item.message }</span>

@@ -5,6 +5,7 @@ export interface LogItem {
   stamp?: string;
   path?: string;
   message?: string;
+  type?: string;
 }
 
 class Logger {
@@ -17,8 +18,14 @@ class Logger {
   onItemsChanged(callback: (items: LogItem[]) => void) {
     this.listeners.push(callback);
   }
-  addItem(path: string, message: string) {
-    var newItem = { stamp: new Date().toLocaleString(), path: path, message: message } as LogItem;
+  debug(path: string, message: string) {
+    this.log(path, message, 'debug');
+  }
+  error(path: string, message: string) {
+    this.log(path, message, 'error');
+  }
+  log(path: string, message: string, type: string = 'log') {
+    var newItem = { stamp: new Date().toLocaleString(), path: path, message: message, type: type } as LogItem;
     this.items = [newItem].concat(this.items); //Use concat to make a new array and avoid changing immutable state
     this.listeners.forEach((callback: (items: LogItem[]) => void) => {
       callback(this.items);

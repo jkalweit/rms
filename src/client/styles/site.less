@@ -309,6 +309,14 @@ input, textarea, keygen, select, button {
   ul {
     list-style: none;
     li {
+
+      &.debug {
+        background-color: @mdc-green-100;
+      }
+      &.error {
+        background-color: @mdc-red-100;
+      }
+
       .timestamp {
         padding-right: 5px;
         color: @mdc-green-700;
@@ -318,7 +326,7 @@ input, textarea, keygen, select, button {
         color: @mdc-blue-700;
       }
       .message {
-        
+
       }
     }
   }

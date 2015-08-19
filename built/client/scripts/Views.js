@@ -71,7 +71,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
         }
         LogView.prototype.render = function () {
             var nodes = this.state.items.map(function (item) {
-                return (React.createElement("li", {"key": item.stamp}, React.createElement("span", {"className": "timestamp"}, item.stamp), React.createElement("span", {"className": "path"}, item.path), React.createElement("span", {"className": "message"}, item.message)));
+                return (React.createElement("li", {"className": item.type, "key": item.stamp}, React.createElement("span", {"className": "timestamp"}, item.stamp), React.createElement("span", {"className": "path"}, item.path), React.createElement("span", {"className": "message"}, item.message)));
             });
             return (React.createElement("div", {"className": "log-view"}, React.createElement("h1", null, "Log"), React.createElement("ul", null, nodes)));
         };

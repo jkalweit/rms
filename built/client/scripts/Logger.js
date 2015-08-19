@@ -8,9 +8,16 @@ define(["require", "exports"], function (require, exports) {
         Logger.prototype.onItemsChanged = function (callback) {
             this.listeners.push(callback);
         };
-        Logger.prototype.addItem = function (path, message) {
+        Logger.prototype.debug = function (path, message) {
+            this.log(path, message, 'debug');
+        };
+        Logger.prototype.error = function (path, message) {
+            this.log(path, message, 'error');
+        };
+        Logger.prototype.log = function (path, message, type) {
             var _this = this;
-            var newItem = { stamp: new Date().toLocaleString(), path: path, message: message };
+            if (type === void 0) { type = 'log'; }
+            var newItem = { stamp: new Date().toLocaleString(), path: path, message: message, type: type };
             this.items = [newItem].concat(this.items);
             this.listeners.forEach(function (callback) {
                 callback(_this.items);

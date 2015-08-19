@@ -31,8 +31,11 @@ export class SyncNodeServer {
             console.log('getLatest', this.data.lastModified, clientLastModified);
             if (!clientLastModified || clientLastModified < this.data.lastModified) {
                 //console.log('sending: ', JSON.stringify(reconciliation));
-                console.log('sending this.data', this.data);
+                console.log('sending latest', this.data);
                 socket.emit('latest', JSON.stringify(this.data));
+            } else {
+                console.log('already has latest.');
+                socket.emit('latest', null);
             }
         });
 
