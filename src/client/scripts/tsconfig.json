@@ -13,6 +13,7 @@
     ],
     "files": [
         "./App.ts",
+        "./Logger.ts",
         "./Models.ts",
         "./SyncNode.ts",
         "./SyncNodeSocket.ts",

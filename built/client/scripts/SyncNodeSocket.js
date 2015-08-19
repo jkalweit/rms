@@ -1,5 +1,5 @@
 /// <reference path="./typings/tsd.d.ts" />
-define(["require", "exports", 'socket.io', './SyncNode'], function (require, exports, io, Sync) {
+define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (require, exports, io, Sync, Logger) {
     "use strict";
     var SyncNodeSocket = (function () {
         function SyncNodeSocket(path, defaultObject) {
@@ -16,13 +16,31 @@ define(["require", "exports", 'socket.io', './SyncNode'], function (require, exp
             var socketHost = 'http://' + location.host + path;
             console.log('Connecting to namespace: \'' + socketHost + '\'');
             this.server = io(socketHost);
+            this.server.on('disconnect', function () {
+                Logger.Log.addItem(_this.path, 'Disconnected');
+                console.log('*************DISCONNECTED');
+                _this.status = 'Disconnected';
+                _this.updateStatus(_this.status);
+            });
+            this.server.on('reconnect', function (number) {
+                Logger.Log.addItem(_this.path, 'Reconnected after tries: ' + number);
+                console.log('*************Reconnected');
+                _this.status = 'Connected';
+                _this.updateStatus(_this.status);
+                setTimeout(function () {
+                    _this.getLatest();
+                }, 2000);
+            });
+            this.server.on('reconnect_failed', function (number) {
+                Logger.Log.addItem(_this.path, 'Reconnection Failed. Number of tries: ' + number);
+                console.log('*************************Reconnection failed.');
+            });
             this.server.on('update', function (merge) {
                 var mergeObj = JSON.parse(merge);
                 console.log('*************handle update: ', mergeObj);
                 _this.updatesDisabled = true;
                 _this.syncNode['local'].merge(mergeObj);
                 _this.updatesDisabled = false;
-                _this.updateStatus('Received update - last modified: ' + mergeObj.lastModified);
             });
             this.server.on('latest', function (latest) {
                 var latestObj = JSON.parse(latest);
@@ -30,10 +48,12 @@ define(["require", "exports", 'socket.io', './SyncNode'], function (require, exp
                 _this.updatesDisabled = true;
                 _this.syncNode.set('local', latestObj);
                 _this.updatesDisabled = false;
-                _this.updateStatus('Received latest - last modified: ' + latestObj.lastModified);
             });
-            this.server.emit('getLatest', this.get()['lastModified']);
+            this.getLatest();
         }
+        SyncNodeSocket.prototype.getLatest = function () {
+            this.server.emit('getLatest', this.get()['lastModified']);
+        };
         SyncNodeSocket.prototype.updateStatus = function (status) {
             this.status = status;
             if (this.onStatusChanged)

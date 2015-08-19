@@ -4,7 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation', './Reconciliation', './Menu'], function (require, exports, React, Sync, Nav, Rec, Menu) {
+define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation', './Reconciliation', './Menu', './Logger'], function (require, exports, React, Sync, Nav, Rec, Menu, Logger) {
     'use strict';
     var Bootstrap = (function () {
         function Bootstrap() {
@@ -30,7 +30,6 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
             var sync = new Sync.SyncNodeSocket('/reconciliation', defaultRec);
             sync.onStatusChanged = function (path, status) {
                 _this.setState({ syncSocketStatus: status });
-                _this.refs['logView'].addItem(path, status);
             };
             sync.onUpdated(function (updated) {
                 console.log('     setting state: ', updated);
@@ -54,12 +53,6 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
         return MainView;
     })(React.Component);
     exports.MainView = MainView;
-    var LogItem = (function () {
-        function LogItem() {
-        }
-        return LogItem;
-    })();
-    exports.LogItem = LogItem;
     var LogViewState = (function () {
         function LogViewState() {
         }
@@ -69,17 +62,16 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
     var LogView = (function (_super) {
         __extends(LogView, _super);
         function LogView(props) {
+            var _this = this;
             _super.call(this, props);
-            this.state = { items: [] };
+            this.state = { items: Logger.Log.items };
+            Logger.Log.onItemsChanged(function (items) {
+                _this.setState({ items: items });
+            });
         }
-        LogView.prototype.addItem = function (path, message) {
-            var newItem = { stamp: new Date().toLocaleString(), path: path, message: message };
-            var newArray = [newItem].concat(this.state.items);
-            this.setState({ items: newArray });
-        };
         LogView.prototype.render = function () {
             var nodes = this.state.items.map(function (item) {
-                return (React.createElement("li", {"key": item.stamp}, item.stamp, item.path, item.message));
+                return (React.createElement("li", {"key": item.stamp}, React.createElement("span", {"className": "timestamp"}, item.stamp), React.createElement("span", {"className": "path"}, item.path), React.createElement("span", {"className": "message"}, item.message)));
             });
             return (React.createElement("div", {"className": "log-view"}, React.createElement("h1", null, "Log"), React.createElement("ul", null, nodes)));
         };

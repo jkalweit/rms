@@ -2,6 +2,7 @@
 
 import io = require('socket.io');
 import Sync = require('./SyncNode');
+import Logger = require('./Logger');
 
 "use strict";
 
@@ -31,6 +32,31 @@ export class SyncNodeSocket<T> {
         console.log('Connecting to namespace: \'' + socketHost + '\'');
         this.server = io(socketHost);
 
+        this.server.on('disconnect', () => {
+            Logger.Log.addItem(this.path, 'Disconnected');
+            console.log('*************DISCONNECTED');
+            this.status = 'Disconnected';
+            this.updateStatus(this.status);
+            //this.updateStatus('Received update - last modified: ' + mergeObj.lastModified);
+        });
+
+        this.server.on('reconnect', (number: Number) => {
+            Logger.Log.addItem(this.path, 'Reconnected after tries: ' + number);
+            console.log('*************Reconnected');
+            this.status = 'Connected';
+            this.updateStatus(this.status);
+            setTimeout(() => {
+              this.getLatest();
+            }, 2000);
+        });
+
+        this.server.on('reconnect_failed', (number: Number) => {
+            Logger.Log.addItem(this.path, 'Reconnection Failed. Number of tries: ' + number);
+            console.log('*************************Reconnection failed.');
+            //this.status = 'Connected';
+            //this.updateStatus(this.status);
+            //this.updateStatus('Received update - last modified: ' + mergeObj.lastModified);
+        });
 
         // function mergeByLastModified(node: Sync.SyncNode, merge: any) {
         //   console.log('Doing merge: ', merge);
@@ -56,7 +82,7 @@ export class SyncNodeSocket<T> {
             this.updatesDisabled = true;
             this.syncNode['local'].merge(mergeObj);
             this.updatesDisabled = false;
-            this.updateStatus('Received update - last modified: ' + mergeObj.lastModified);
+            //this.updateStatus('Received update - last modified: ' + mergeObj.lastModified);
         });
 
         this.server.on('latest', (latest: any) => {
@@ -65,10 +91,13 @@ export class SyncNodeSocket<T> {
             this.updatesDisabled = true;
             this.syncNode.set('local', latestObj);
             this.updatesDisabled = false;
-            this.updateStatus('Received latest - last modified: ' + latestObj.lastModified);
+            //this.updateStatus('Received latest - last modified: ' + latestObj.lastModified);
         });
 
-        this.server.emit('getLatest', this.get()['lastModified']);
+        this.getLatest();
+    }
+    getLatest() {
+      this.server.emit('getLatest', this.get()['lastModified']);
     }
     updateStatus(status: string) {
       this.status = status;

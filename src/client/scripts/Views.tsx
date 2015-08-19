@@ -8,6 +8,7 @@ import Models = require('./Models');
 import Nav = require('./Navigation');
 import Rec = require('./Reconciliation');
 import Menu = require('./Menu');
+import Logger = require('./Logger');
 
 'use strict';
 
@@ -43,7 +44,6 @@ export class MainView extends React.Component<{}, MainViewState> {
         var sync = new Sync.SyncNodeSocket<Models.Reconciliation>('/reconciliation', defaultRec);
         sync.onStatusChanged = (path: string, status: string) => {
           this.setState({ syncSocketStatus: status });
-          (this.refs['logView'] as LogView).addItem(path, status);
         };
 
         sync.onUpdated((updated: Models.Reconciliation) => {
@@ -101,29 +101,25 @@ export class MainView extends React.Component<{}, MainViewState> {
 }
 
 
-export class LogItem {
-  stamp: string;
-  path: string;
-  message: string;
-}
+
 export class LogViewState {
-  items: LogItem[];
+  items: Logger.LogItem[];
 }
 export class LogView extends React.Component<any, LogViewState> {
   constructor(props: any) {
     super(props);
-    this.state = { items: [] };
-  }
-  addItem(path: string, message: string) {
-    var newItem = { stamp: new Date().toLocaleString(), path: path, message: message };
-    var newArray = [newItem].concat(this.state.items); //Use concat to make a new array and avoid changing immutable state
-    this.setState({ items: newArray });
+    this.state = { items: Logger.Log.items };
+    Logger.Log.onItemsChanged((items: Logger.LogItem[]) => {
+      this.setState({ items: items });
+    });
   }
   render() {
-    var nodes = this.state.items.map((item: LogItem) => {
+    var nodes = this.state.items.map((item: Logger.LogItem) => {
       return (
           <li key={item.stamp}>
-            { item.stamp } { item.path } { item.message }
+            <span className="timestamp">{ item.stamp }</span>
+            <span className="path">{ item.path }</span>
+            <span className="message">{ item.message }</span>
           </li>
       );
     });

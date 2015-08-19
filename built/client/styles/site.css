@@ -320,6 +320,20 @@ button {
 .text-right {
   text-align: right;
 }
+.log-view {
+  background-color: #FFFFFF;
+}
+.log-view ul {
+  list-style: none;
+}
+.log-view ul li .timestamp {
+  padding-right: 5px;
+  color: #388e3c;
+}
+.log-view ul li .path {
+  padding-right: 5px;
+  color: #1976d2;
+}
 .menu .h,
 .menu-edit .h {
   width: 100%;
