@@ -21,7 +21,6 @@ export class MenuEdit extends bv.SyncView<MenuEditProps, MenuEditState> {
         this.state = { selectedCategory: null, selectedItem: null };
     }
     componentWillReceiveProps(nextProps: MenuEditProps, nextState: MenuEditState) {
-      console.log(this.name, 'New Menu Props11111111111111', nextProps, nextState);
       if(nextProps.menu && this.state.selectedCategory) this.setState({ selectedCategory: nextProps.menu.categories[this.state.selectedCategory.key] });
     }
     newCategory() {

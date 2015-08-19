@@ -1,5 +1,13 @@
 /// <reference path='./typings/tsd.d.ts' />
 var Persistence = require('./Persistence');
+var Response = (function () {
+    function Response(requestGuid, data) {
+        this.requestGuid = requestGuid;
+        this.stamp = new Date();
+        this.data = data;
+    }
+    return Response;
+})();
 var SyncNodeServer = (function () {
     function SyncNodeServer(namespace, io, defaultData) {
         var _this = this;
@@ -21,7 +29,7 @@ var SyncNodeServer = (function () {
                 console.log('getLatest', _this.data.lastModified, clientLastModified);
                 if (!clientLastModified || clientLastModified < _this.data.lastModified) {
                     console.log('sending latest', _this.data);
-                    socket.emit('latest', JSON.stringify(_this.data));
+                    socket.emit('latest', _this.data);
                 }
                 else {
                     console.log('already has latest.');
@@ -42,12 +50,13 @@ var SyncNodeServer = (function () {
                 });
                 return obj;
             }
-            socket.on('update', function (merge) {
-                var mergeObj = JSON.parse(merge);
-                console.log('Do merge: ', mergeObj);
-                doMerge(_this.data, mergeObj);
+            socket.on('update', function (request) {
+                var merge = request.data;
+                console.log('Do merge: ', merge);
+                doMerge(_this.data, merge);
                 _this.persistence.persist(_this.data);
-                socket.broadcast.emit('update', merge);
+                socket.emit('updateResponse', new Response(request.requestGuid, null));
+                _this.ioNamespace.emit('update', merge);
             });
         });
     };

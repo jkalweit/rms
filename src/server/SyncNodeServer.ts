@@ -3,6 +3,23 @@
 import socketio = require('socket.io');
 import Persistence = require('./Persistence');
 
+interface Request {
+    requestGuid?: string;
+    stamp?: Date;
+    data?: any;
+}
+
+class Response {
+    requestGuid: string;
+    stamp: Date;
+    data: any;
+
+    constructor(requestGuid: string, data?: any) {
+      this.requestGuid = requestGuid;
+      this.stamp = new Date();
+      this.data = data;
+    }
+}
 
 export class SyncNodeServer {
   namespace: string;
@@ -32,7 +49,7 @@ export class SyncNodeServer {
             if (!clientLastModified || clientLastModified < this.data.lastModified) {
                 //console.log('sending: ', JSON.stringify(reconciliation));
                 console.log('sending latest', this.data);
-                socket.emit('latest', JSON.stringify(this.data));
+                socket.emit('latest', this.data);
             } else {
                 console.log('already has latest.');
                 socket.emit('latest', null);
@@ -55,12 +72,14 @@ export class SyncNodeServer {
             return obj;
         }
 
-        socket.on('update', (merge: string) => {
-            var mergeObj = JSON.parse(merge);
-            console.log('Do merge: ', mergeObj);
-            doMerge(this.data, mergeObj);
+        socket.on('update', (request: Request) => {
+            var merge = request.data;
+            console.log('Do merge: ', merge);
+            doMerge(this.data, merge);
             this.persistence.persist(this.data);
-            socket.broadcast.emit('update', merge);
+            socket.emit('updateResponse', new Response(request.requestGuid, null));
+            //socket.broadcast.emit('update', merge); // TODO: Only send to other clients. Hack to make sync work.
+            this.ioNamespace.emit('update', merge); // TODO: This is a hack to make sync work.
         });
     });
   }

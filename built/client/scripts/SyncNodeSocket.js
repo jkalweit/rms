@@ -2,6 +2,23 @@
 define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (require, exports, io, Sync, Logger2) {
     "use strict";
     var Log = Logger2.Log;
+    var Request = (function () {
+        function Request(data) {
+            this.requestGuid = Request.guid();
+            this.stamp = new Date();
+            this.data = data;
+        }
+        Request.guid = function () {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                s4() + '-' + s4() + s4() + s4();
+        };
+        return Request;
+    })();
     var SyncNodeSocket = (function () {
         function SyncNodeSocket(path, defaultObject) {
             var _this = this;
@@ -11,7 +28,9 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
             if (!(path[0] === '/'))
                 path = '/' + path;
             this.path = path;
+            this.openRequests = {};
             var localCached = JSON.parse(localStorage.getItem(this.path));
+            this.serverLastModified = null;
             this.syncNode = new Sync.SyncNode({ local: localCached || defaultObject });
             Sync.SyncNode.addNE(this.syncNode, 'onUpdated', this.createOnUpdated(this));
             var socketHost = 'http://' + location.host + path;
@@ -28,21 +47,23 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
                 console.log('*************Reconnected');
                 _this.status = 'Connected';
                 _this.updateStatus(_this.status);
-                setTimeout(function () {
-                    _this.getLatest();
-                }, 2000);
+                _this.getLatest();
             });
             this.server.on('reconnect_failed', function (number) {
                 Log.error(_this.path, 'Reconnection Failed. Number of tries: ' + number);
                 console.log('*************************Reconnection failed.');
             });
             this.server.on('update', function (merge) {
-                var mergeObj = JSON.parse(merge);
-                Log.debug(_this.path, 'received update: ' + merge);
-                console.log('*************handle update: ', mergeObj);
+                Log.debug(_this.path, 'received update: ' + JSON.stringify(merge));
+                console.log('*************handle update: ', merge);
                 _this.updatesDisabled = true;
-                _this.syncNode['local'].merge(mergeObj);
+                _this.syncNode['local'].merge(merge);
                 _this.updatesDisabled = false;
+            });
+            this.server.on('updateResponse', function (response) {
+                Log.debug(_this.path, 'received response: ' + JSON.stringify(response));
+                console.log('*************handle response: ', response);
+                _this.clearRequest(response.requestGuid);
             });
             this.server.on('latest', function (latest) {
                 if (!latest) {
@@ -50,18 +71,31 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
                     Log.debug(_this.path, 'already has latest.');
                 }
                 else {
-                    var latestObj = JSON.parse(latest);
                     Log.debug(_this.path, 'Received latest: ' + latest.lastModified);
-                    console.log('handle latest: ', latestObj);
+                    _this.serverLastModified = latest.lastModified;
+                    console.log('handle latest: ', latest);
                     _this.updatesDisabled = true;
-                    _this.syncNode.set('local', latestObj);
+                    _this.syncNode.set('local', latest);
                     _this.updatesDisabled = false;
                 }
+                _this.sendOpenRequests();
             });
             this.getLatest();
         }
+        SyncNodeSocket.prototype.sendOpenRequests = function () {
+            var _this = this;
+            var keys = Object.keys(this.openRequests);
+            Log.debug(this.path, 'Sending open requests: ' + keys.length.toString());
+            console.log('Sending open requests: ', keys.length);
+            keys.forEach(function (key) {
+                _this.sendRequest(_this.openRequests[key]);
+            });
+        };
+        SyncNodeSocket.prototype.clearRequest = function (requestGuid) {
+            delete this.openRequests[requestGuid];
+        };
         SyncNodeSocket.prototype.getLatest = function () {
-            this.server.emit('getLatest', this.get()['lastModified']);
+            this.server.emit('getLatest', this.serverLastModified);
         };
         SyncNodeSocket.prototype.updateStatus = function (status) {
             this.status = status;
@@ -74,11 +108,22 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
                 Sync.SyncNode.addNE(updated, 'onUpdated', _this.createOnUpdated(_this));
                 _this.syncNode = updated;
                 localStorage.setItem(_this.path, JSON.stringify(_this.get()));
-                if (!_this.updatesDisabled) {
-                    _this.server.emit('update', JSON.stringify(merge.local));
-                }
+                _this.queueUpdate(merge.local);
                 _this.notify();
             };
+        };
+        SyncNodeSocket.prototype.queueUpdate = function (update) {
+            if (!this.updatesDisabled) {
+                var request = new Request(update);
+                this.openRequests[request.requestGuid] = request;
+                this.sendRequest(request);
+            }
+        };
+        SyncNodeSocket.prototype.sendRequest = function (request) {
+            this.openRequests[request.requestGuid] = request;
+            if (this.server['connected']) {
+                this.server.emit('update', request);
+            }
         };
         SyncNodeSocket.prototype.onUpdated = function (callback) {
             this.listeners.push(callback);

@@ -8,6 +8,34 @@ import Logger2 = require('./Logger');
 
 var Log = Logger2.Log;
 
+class Request {
+    requestGuid: string;
+    stamp: Date;
+    data: any;
+
+    constructor(data?: any) {
+        this.requestGuid = Request.guid();
+        this.stamp = new Date();
+        this.data = data;
+    }
+
+    static guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+}
+
+interface Response {
+    requestGuid: string;
+    stamp: Date;
+    data: any;
+}
+
 export class SyncNodeSocket<T> {
     private path: string;
     private server: SocketIO.Server;
@@ -17,15 +45,20 @@ export class SyncNodeSocket<T> {
     onStatusChanged: (path: string, status: string) => void;
     updatesDisabled: boolean = false; //To prevent loop when setting data received from server
 
+    serverLastModified: Date;
+    openRequests: { [key: string]: Request };
+
     constructor(path: string, defaultObject: T) {
         this.status = 'Initializing...';
 
         if (!(path[0] === '/')) path = '/' + path; //normalize
 
         this.path = path;
+        this.openRequests = {};
 
         var localCached = JSON.parse(localStorage.getItem(this.path)); //get local cache
 
+        this.serverLastModified = null;
         this.syncNode = new Sync.SyncNode({ local: localCached || defaultObject });
         Sync.SyncNode.addNE(this.syncNode, 'onUpdated', this.createOnUpdated(this));
 
@@ -46,9 +79,7 @@ export class SyncNodeSocket<T> {
             console.log('*************Reconnected');
             this.status = 'Connected';
             this.updateStatus(this.status);
-            setTimeout(() => {
-                this.getLatest();
-            }, 2000);
+            this.getLatest();
         });
 
         this.server.on('reconnect_failed', (number: Number) => {
@@ -78,13 +109,18 @@ export class SyncNodeSocket<T> {
         // }
 
         this.server.on('update', (merge: any) => {
-            var mergeObj = JSON.parse(merge);
-            Log.debug(this.path, 'received update: ' + merge);
-            console.log('*************handle update: ', mergeObj);
+            Log.debug(this.path, 'received update: ' + JSON.stringify(merge));
+            console.log('*************handle update: ', merge);
             this.updatesDisabled = true;
-            this.syncNode['local'].merge(mergeObj);
+            this.syncNode['local'].merge(merge);
             this.updatesDisabled = false;
             //this.updateStatus('Received update - last modified: ' + mergeObj.lastModified);
+        });
+
+        this.server.on('updateResponse', (response: Response) => {
+            Log.debug(this.path, 'received response: ' + JSON.stringify(response));
+            console.log('*************handle response: ', response);
+            this.clearRequest(response.requestGuid);
         });
 
         this.server.on('latest', (latest: any) => {
@@ -92,20 +128,32 @@ export class SyncNodeSocket<T> {
                 console.log('already has latest.');
                 Log.debug(this.path, 'already has latest.');
             } else {
-                var latestObj = JSON.parse(latest);
                 Log.debug(this.path, 'Received latest: ' + latest.lastModified);
-                console.log('handle latest: ', latestObj);
+                this.serverLastModified = latest.lastModified;
+                console.log('handle latest: ', latest);
                 this.updatesDisabled = true;
-                this.syncNode.set('local', latestObj);
+                this.syncNode.set('local', latest);
                 this.updatesDisabled = false;
-                //this.updateStatus('Received latest - last modified: ' + latestObj.lastModified);
             }
+
+            this.sendOpenRequests();
         });
 
         this.getLatest();
     }
+    sendOpenRequests() {
+        var keys = Object.keys(this.openRequests);
+        Log.debug(this.path, 'Sending open requests: ' + keys.length.toString());
+        console.log('Sending open requests: ', keys.length);
+        keys.forEach(key => {
+            this.sendRequest(this.openRequests[key]);
+        });
+    }
+    clearRequest(requestGuid: string) {
+        delete this.openRequests[requestGuid];
+    }
     getLatest() {
-        this.server.emit('getLatest', this.get()['lastModified']);
+        this.server.emit('getLatest', this.serverLastModified);
     }
     updateStatus(status: string) {
         this.status = status;
@@ -119,11 +167,22 @@ export class SyncNodeSocket<T> {
 
             //console.log('syncNode updated:', action, path, merge, this.syncNode);
             localStorage.setItem(this.path, JSON.stringify(this.get()));
-            if (!this.updatesDisabled) {
-                this.server.emit('update', JSON.stringify(merge.local));
-            }
+            this.queueUpdate(merge.local);
             this.notify();
         };
+    }
+    queueUpdate(update: any) {
+        if (!this.updatesDisabled) {
+            var request = new Request(update);
+            this.openRequests[request.requestGuid] = request;
+            this.sendRequest(request);
+        }
+    }
+    sendRequest(request: Request) {
+        this.openRequests[request.requestGuid] = request;
+        if (this.server['connected']) {
+            this.server.emit('update', request);
+        }
     }
     onUpdated(callback: (updated: T) => void) {
         this.listeners.push(callback);
