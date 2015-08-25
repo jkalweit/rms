@@ -28,7 +28,6 @@ var SyncNodeServer = (function () {
             socket.on('getLatest', function (clientLastModified) {
                 console.log('getLatest', _this.data.lastModified, clientLastModified);
                 if (!clientLastModified || clientLastModified < _this.data.lastModified) {
-                    console.log('sending latest', _this.data);
                     socket.emit('latest', _this.data);
                 }
                 else {
@@ -40,6 +39,9 @@ var SyncNodeServer = (function () {
                 if (typeof merge !== 'object')
                     return merge;
                 Object.keys(merge).forEach(function (key) {
+                    if (key === 'lastModified' && obj[key] > merge[key]) {
+                        console.error('Server version lastModified GREATER THAN merge lastModified', obj[key], merge[key]);
+                    }
                     if (key === '__remove') {
                         delete obj[merge[key]];
                     }
@@ -52,7 +54,6 @@ var SyncNodeServer = (function () {
             }
             socket.on('update', function (request) {
                 var merge = request.data;
-                console.log('Do merge: ', merge);
                 doMerge(_this.data, merge);
                 _this.persistence.persist(_this.data);
                 socket.emit('updateResponse', new Response(request.requestGuid, null));

@@ -5,6 +5,7 @@ import React = require('react/addons');
 
 export interface SyncViewState {
     isNew?: boolean;
+    isDirty?: boolean;
 }
 
 export class SyncView<P, S extends SyncViewState> extends React.Component<P, S> {
@@ -43,13 +44,13 @@ export class SyncView<P, S extends SyncViewState> extends React.Component<P, S> 
     }
     shouldComponentUpdate(nextProps: P, nextState: S) {
         var propsDiff = this.isShallowDiff(this.props, nextProps);
-        var stateDiff = this.isShallowDiff(this.state, nextState);
+        var stateDiff = nextState ? this.isShallowDiff(this.state, nextState) : false;
         var shouldUpdate = propsDiff || stateDiff;
         // console.log('state: ', this.state);
         // console.log('nextState: ', nextState);
         // console.log('props: ', propsDiff, 'state: ', stateDiff, 'update: ', shouldUpdate);
         // if (shouldUpdate) console.log(this.name + ': UPDATE ');
-        // else console.log(this.name + '         : NO UPDATE ');
+        // else .log(this.name + '         : NO UPDATE ');
         return shouldUpdate;
     }
     componentWillReceiveProps(nextProps: P, nextState: S) {
@@ -57,10 +58,19 @@ export class SyncView<P, S extends SyncViewState> extends React.Component<P, S> 
           this.setState({ isNew: true } as any);
       }
     }
-
-    preRender(): string[] {
-      console.log(this.name, 'Render');
-      var classNames: string[] = ['flash'];
+    handleChange(mutableProp: string, fieldName: string, event: Event) {
+        var mutable = this.state[mutableProp];
+        if (mutable[fieldName] !== (event.target as HTMLInputElement).value) {
+            mutable[fieldName] = (event.target as HTMLInputElement).value;
+            var nextState = { isDirty: true };
+            nextState[mutableProp] = mutable;
+            console.log('here', nextState);
+            this.setState(nextState as any as S);
+        }
+    }
+    preRender(classNames: string[] = []): string[] {
+      //console.log(this.name, 'Render');
+      classNames.push('flash');
       if(this.state.isNew) {
         classNames.push('glow');
         setTimeout(() => { this.setState({ isNew: false } as any); }, 200);
@@ -131,4 +141,74 @@ export class Button extends React.Component<ButtonProps, ButtonState> {
         );
     }
 
+}
+
+
+
+
+export interface ModalViewProps {
+  ref?: string;
+  children?: any;
+  onShown?: () => void;
+}
+export interface ModalViewState {
+  isVisible: boolean;
+}
+export class ModalView extends React.Component<ModalViewProps, ModalViewState> {
+    constructor(props: ModalViewProps) {
+        super(props);
+        this.state = {
+            isVisible: false
+        };
+    }
+    show(callback?: () => void) {
+        this.setState({
+            isVisible: true
+        }, () => {
+          if(callback) callback();
+          if (this.props.onShown) this.props.onShown()
+          });
+    }
+    hide() {
+        this.setState({
+            isVisible: false
+        });
+    }
+    toggle() {
+        this.setState({
+            isVisible: !this.state.isVisible
+        }, () => {
+            if (this.state.isVisible && this.props.onShown) { this.props.onShown(); }
+        });
+    }
+    render() {
+        var backdropStyle = {
+            display: this.state.isVisible ? 'block' : 'none',
+            position: 'fixed',
+            top: '50px',
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 2,
+            backgroundColor: 'rgba(0,0,0,0.5)'
+        };
+        var innerStyle = {
+            borderRadius: '5px',
+            backgroundColor: '#FFFFFF',
+            color: '#000000',
+            minWidth: '400px',
+            maxWidth: '600px',
+            width: '80%',
+            margin: '20px auto',
+            padding: '40px',
+            zIndex: 11
+        };
+        return (
+            <div style={backdropStyle}>
+              <div style={innerStyle}>
+                { this.props.children }
+              </div>
+            </div>
+        );
+    }
 }

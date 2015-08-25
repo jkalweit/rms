@@ -11,7 +11,7 @@ var defaultRec = {
     lastModified: new Date().toISOString(),
     name: 'New Rec',
     tickets: {
-        '0': { key: '0', name: 'Justin2' }
+        '0': { key: '0', name: 'Justin2', items: {} }
     },
     menu: {
         categories: {
@@ -26,6 +26,18 @@ var defaultRec = {
     }
 };
 var ReconciliationServer = new Sync.SyncNodeServer('reconciliation', io, defaultRec);
+var defaultDiagrams = {
+    lastModified: new Date().toISOString(),
+    diagrams: {
+        '1': {
+            key: '1',
+            lastModified: new Date().toISOString(),
+            name: 'New Flow 1',
+            items: {}
+        }
+    }
+};
+var FlowDiagramsServer = new Sync.SyncNodeServer('flowdiagrams', io, defaultDiagrams);
 app.use('/', function (req, res, next) {
     if (req.url === '/') {
         res.writeHead('content-type', 'text/plain');

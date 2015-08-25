@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "./built/server/Server.js",
+  "scripts": {
+      "start": "node ./built/server/Server.js"
+  },
   "dependencies": {
     "body-parser": "^1.13.2",
     "express": "^4.13.1",

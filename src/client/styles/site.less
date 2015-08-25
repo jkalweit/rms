@@ -56,7 +56,7 @@
 
 
 .scroll-vertical {
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;;
 }
 
@@ -105,12 +105,15 @@ li {
 
 @btn-background-color: #FFFFFF;
 @btn-color: @mdc-black-darker;
+@btn-height: 40px;
 .btn {
   border: 1px solid @mdc-black-lighter;
   border-radius: 3px;
   background-color: @btn-background-color;
   color: @btn-color;
   text-align: center;
+  height: @btn-height;
+  padding: 10px;
   user-select: none;
 
   transition: all 100ms ease-out;
@@ -177,7 +180,7 @@ input, textarea, keygen, select, button {
 @header-height: 50px;
 .sticky-header {
   position: fixed;
-  z-index: 10;
+  z-index: 1;
   top: 0;
   left: 0;
   width: 100%;
@@ -187,6 +190,10 @@ input, textarea, keygen, select, button {
   color: @mdc-black-dark;
   box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.5);
 
+  &.error {
+    background-color: @mdc-red-500;
+  }
+
   ul {
       list-style-type: none;
       margin: 0;
@@ -194,6 +201,10 @@ input, textarea, keygen, select, button {
       height: 100%;
       width: 100%;
       overflow: hidden;
+
+      .status {
+        padding: ((@header-height - @header-font-size) / 2) 10px;
+      }
 
       .link {
         display: block;
@@ -249,7 +260,6 @@ input, textarea, keygen, select, button {
 
         li {
           height: @header-height;
-          background-color: @mdc-green-500;
           overflow: hidden;
         }
       }
@@ -267,6 +277,7 @@ input, textarea, keygen, select, button {
         position: relative;
         display: block;
         float: none;
+        background-color: @mdc-green-500;
         //clear: both;
         width: 100%;
         border: 1px solid @mdc-black-lighter;
@@ -335,3 +346,4 @@ input, textarea, keygen, select, button {
 @import "menu";
 @import "kitchen";
 @import "reconciliation";
+@import "flow";

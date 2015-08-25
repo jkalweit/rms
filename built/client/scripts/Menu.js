@@ -5,7 +5,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './BaseViews'], function (require, exports, React, bv) {
+define(["require", "exports", 'react/addons', './BaseViews', './Utils'], function (require, exports, React, bv, Utils) {
     var MenuEdit = (function (_super) {
         __extends(MenuEdit, _super);
         function MenuEdit(props) {
@@ -13,50 +13,83 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
             this.name = '  MenuEdit';
             this.state = { selectedCategory: null, selectedItem: null };
         }
-        MenuEdit.prototype.componentWillReceiveProps = function (nextProps, nextState) {
-            if (nextProps.menu && this.state.selectedCategory)
-                this.setState({ selectedCategory: nextProps.menu.categories[this.state.selectedCategory.key] });
+        MenuEdit.prototype.componentWillReceiveProps = function (nextProps) {
+            if (nextProps.menu.categories !== this.props.menu.categories) {
+                if (this.state.selectedCategory) {
+                    var replacementCategory = nextProps.menu.categories[this.state.selectedCategory.key];
+                    var nextState = { selectedCategory: replacementCategory, selectedItem: null };
+                    if (this.state.selectedItem) {
+                        nextState.selectedItem = replacementCategory.items[this.state.selectedItem.key];
+                    }
+                    this.setState(nextState);
+                }
+            }
         };
         MenuEdit.prototype.newCategory = function () {
+            var _this = this;
             var mutable = {
                 type: 'Food',
                 name: '',
                 note: '',
                 items: {}
             };
-            this.setState({ selectedCategory: mutable, selectedItem: null });
+            this.setState({ selectedCategory: mutable, selectedItem: null }, function () {
+                _this.refs['menuCategoryEditModal'].show();
+            });
         };
         MenuEdit.prototype.newItem = function () {
+            var _this = this;
             var mutable = {
                 name: '',
                 price: 0
             };
-            this.setState({ selectedItem: mutable });
+            this.setState({ selectedItem: mutable }, function () {
+                _this.refs['menuItemEditModal'].show();
+            });
         };
         MenuEdit.prototype.render = function () {
             var _this = this;
-            console.log(this.name + ': Render');
-            return (React.createElement("div", {"className": "menu-edit"}, "ID: ", this.state.selectedCategory ? this.state.selectedCategory.__syncNodeId : 'none selected', React.createElement("button", {"onClick": this.newCategory.bind(this)}, "New Category"), React.createElement("button", {"onClick": this.newItem.bind(this)}, "New Item"), React.createElement(Menu, {"menu": this.props.menu, "selectedCategory": this.state.selectedCategory, "onCategorySelected": function (category) { _this.setState({ selectedCategory: category, selectedItem: null }); }, "selectedItem": this.state.selectedItem, "onItemSelected": function (item) { _this.setState({ selectedItem: item }); }}), this.state.selectedCategory ?
+            var classNames = this.preRender(['menu-edit']);
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("button", {"onClick": this.newCategory.bind(this)}, "New Category"), React.createElement("button", {"onClick": this.newItem.bind(this)}, "New Item"), React.createElement(Menu, {"menu": this.props.menu, "selectedCategory": this.state.selectedCategory, "onCategorySelected": function (category) {
+                if (_this.state.selectedCategory === category) {
+                    _this.refs['menuCategoryEditModal'].show();
+                }
+                else {
+                    _this.setState({ selectedCategory: category, selectedItem: null });
+                }
+            }, "selectedItem": this.state.selectedItem, "onItemSelected": function (item) { _this.setState({ selectedItem: item }); _this.refs['menuItemEditModal'].show(); }}), React.createElement(bv.ModalView, {"ref": "menuCategoryEditModal"}, this.state.selectedCategory ?
                 React.createElement(MenuCategoryEdit, {"menu": this.props.menu, "category": this.state.selectedCategory, "onSave": function (mutable) {
                     mutable.key = mutable.key || new Date().toISOString();
                     var result = _this.props.menu.categories.set(mutable.key, mutable);
-                    _this.setState({ selectedCategory: result.value, selectedItem: null });
-                }, "onCancel": function () { _this.setState({ selectedCategory: null, selectedItem: null }); }, "onRemove": function (key) {
+                    _this.setState({ selectedCategory: result.value, selectedItem: null }, function () {
+                        _this.refs['menuCategoryEditModal'].hide();
+                    });
+                }, "onCancel": function () {
+                    _this.refs['menuCategoryEditModal'].hide();
+                }, "onRemove": function (key) {
                     _this.props.menu.categories.remove(key);
-                    _this.setState({ selectedCategory: null, selectedItem: null });
+                    _this.setState({ selectedCategory: null, selectedItem: null }, function () {
+                        _this.refs['menuCategoryEditModal'].hide();
+                    });
                 }})
-                : null, this.state.selectedItem ?
+                : null), React.createElement(bv.ModalView, {"ref": "menuItemEditModal"}, this.state.selectedItem ?
                 React.createElement(MenuItemEdit, {"category": this.state.selectedCategory, "item": this.state.selectedItem, "onSave": function (mutable) {
                     mutable.key = mutable.key || new Date().toISOString();
-                    console.log('   Saving menu item: ', mutable);
-                    console.log('   Saving  to menu items: ', _this.state.selectedCategory.items);
                     var result = _this.state.selectedCategory.items.set(mutable.key, mutable);
-                    _this.setState({ selectedItem: result.value });
-                }, "onCancel": function () { _this.setState({ selectedItem: null }); }, "onRemove": function (key) {
+                    _this.setState({ selectedItem: result.value }, function () {
+                        _this.refs['menuItemEditModal'].hide();
+                    });
+                }, "onCancel": function () {
+                    _this.setState({ selectedItem: null }, function () {
+                        _this.refs['menuItemEditModal'].hide();
+                    });
+                }, "onRemove": function (key) {
                     _this.state.selectedCategory.items.remove(key);
-                    _this.setState({ selectedItem: null });
+                    _this.setState({ selectedItem: null }, function () {
+                        _this.refs['menuItemEditModal'].hide();
+                    });
                 }})
-                : null));
+                : null)));
         };
         return MenuEdit;
     })(bv.SyncView);
@@ -69,24 +102,22 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
             this.state = { selectedCategory: null };
         }
         Menu.prototype.componentWillReceiveProps = function (nextProps) {
-            console.log('Menu to receive new props:', nextProps);
             var newState = {};
             if (nextProps.selectedCategory)
                 newState.selectedCategory = nextProps.selectedCategory;
             if (nextProps.selectedItem)
                 newState.selectedItem = nextProps.selectedItem;
-            console.log('Menu to receive new       state:', newState);
             if (newState != {}) {
                 this.setState(newState);
             }
         };
         Menu.prototype.render = function () {
             var _this = this;
-            console.log(this.name + ': Render');
+            var classNames = this.preRender(['menu']);
             var menuItems = {};
             if (this.state.selectedCategory)
                 menuItems = this.state.selectedCategory.items;
-            return (React.createElement("div", {"className": "menu"}, React.createElement(MenuCategories, {"categories": this.props.menu.categories, "selectedCategory": this.state.selectedCategory, "onSelectCategory": function (category) { _this.setState({ selectedCategory: category }); if (_this.props.onCategorySelected)
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement(MenuCategories, {"categories": this.props.menu.categories, "selectedCategory": this.state.selectedCategory, "onSelectCategory": function (category) { _this.setState({ selectedCategory: category }); if (_this.props.onCategorySelected)
                 _this.props.onCategorySelected(category); }}), React.createElement(MenuItems, {"items": menuItems, "selectedItem": this.state.selectedItem, "onSelectItem": function (item) { if (_this.props.onItemSelected)
                 _this.props.onItemSelected(item); }})));
         };
@@ -127,21 +158,11 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         MenuCategoryEdit.prototype.remove = function () {
             this.props.onRemove(this.props.category.key);
         };
-        MenuCategoryEdit.prototype.handleChange = function (fieldName, event) {
-            var mutable = this.state.mutable;
-            if (mutable[fieldName] !== event.target.value) {
-                mutable[fieldName] = event.target.value;
-                this.setState({
-                    mutable: mutable,
-                    isDirty: true
-                });
-            }
-        };
         MenuCategoryEdit.prototype.render = function () {
             var _this = this;
-            console.log(this.name + ': Render Details: ' + this.props.category.name);
+            var classNames = this.preRender(['menu-category-details']);
             var mutable = this.state.mutable;
-            return (React.createElement("div", {"className": "menu-category-details"}, React.createElement("h3", null, "Edit Category"), React.createElement("div", {"className": "inner"}, React.createElement("span", {"className": "col-4"}, "Type: "), React.createElement("select", {"className": "col-4", "ref": "type", "value": mutable.type, "onChange": this.handleChange.bind(this, "type")}, React.createElement("option", null), React.createElement("option", null, "Food"), React.createElement("option", null, "Alcohol")), React.createElement("br", null), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Name: "), React.createElement("input", {"className": "col-6", "ref": "name", "value": mutable.name, "onChange": this.handleChange.bind(this, "name")})), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Note: "), React.createElement("input", {"className": "col-10", "value": mutable.note, "onChange": this.handleChange.bind(this, "note")})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.state.isNew ? null : this.remove.bind(this), "isDirty": this.state.isDirty}))));
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("h3", null, "Edit Category"), React.createElement("div", {"className": "inner"}, React.createElement("span", {"className": "col-4"}, "Type: "), React.createElement("select", {"className": "col-4", "ref": "type", "value": mutable.type, "onChange": this.handleChange.bind(this, 'mutable', 'type')}, React.createElement("option", null), React.createElement("option", null, "Food"), React.createElement("option", null, "Alcohol")), React.createElement("br", null), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Name: "), React.createElement("input", {"className": "col-6", "ref": "name", "value": mutable.name, "onChange": this.handleChange.bind(this, 'mutable', 'name')})), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Note: "), React.createElement("input", {"className": "col-10", "value": mutable.note, "onChange": this.handleChange.bind(this, 'mutable', 'note')})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.state.isNew ? null : this.remove.bind(this), "isDirty": this.state.isDirty}))));
         };
         return MenuCategoryEdit;
     })(bv.SyncView);
@@ -179,20 +200,11 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         MenuItemEdit.prototype.remove = function () {
             this.props.onRemove(this.props.item.key);
         };
-        MenuItemEdit.prototype.handleChange = function (fieldName, event) {
-            var mutable = this.state.mutable;
-            if (mutable[fieldName] !== event.target['value']) {
-                mutable[fieldName] = event.target['value'];
-                this.setState({
-                    mutable: mutable,
-                    isDirty: true
-                });
-            }
-        };
         MenuItemEdit.prototype.render = function () {
             var _this = this;
+            var classNames = this.preRender(['menu-category-details']);
             var mutable = this.state.mutable;
-            return (React.createElement("div", {"className": "menu-category-details"}, React.createElement("h3", null, "Edit Item"), React.createElement("div", {"className": "inner"}, React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Name: "), React.createElement("input", {"className": "col-6", "ref": "name", "value": mutable.name, "onChange": this.handleChange.bind(this, "name")})), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Price: "), React.createElement("input", {"className": "col-2", "value": mutable.price.toString(), "onChange": this.handleChange.bind(this, "price")})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.state.isNew ? null : this.remove.bind(this), "isDirty": this.state.isDirty}))));
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("h3", null, "Edit Item"), React.createElement("div", {"className": "inner"}, React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Name: "), React.createElement("input", {"className": "col-6", "ref": "name", "value": mutable.name, "onChange": this.handleChange.bind(this, 'mutable', 'name')})), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Price: "), React.createElement("input", {"className": "col-2", "value": mutable.price.toString(), "onChange": this.handleChange.bind(this, 'mutable', 'price')})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.state.isNew ? null : this.remove.bind(this), "isDirty": this.state.isDirty}))));
         };
         return MenuItemEdit;
     })(bv.SyncView);
@@ -205,15 +217,13 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         }
         MenuCategories.prototype.render = function () {
             var _this = this;
-            console.log(this.name + ': Render');
-            var nodes = Object.keys(this.props.categories).map(function (key) {
-                if (key === 'lastModified')
-                    return;
-                var category = _this.props.categories[key];
+            var classNames = this.preRender(['menu-categories']);
+            var categories = Utils.toArray(this.props.categories);
+            var nodes = categories.map(function (category) {
                 var isSelected = category === _this.props.selectedCategory;
-                return (React.createElement(MenuCategory, {"key": key, "category": category, "isSelected": isSelected, "onSelectCategory": _this.props.onSelectCategory.bind(_this)}));
+                return (React.createElement(MenuCategory, {"key": category.key, "category": category, "isSelected": isSelected, "onSelectCategory": _this.props.onSelectCategory.bind(_this)}));
             });
-            return (React.createElement("div", {"className": "menu-categories"}, React.createElement("ul", null, nodes)));
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("ul", null, nodes)));
         };
         return MenuCategories;
     })(bv.SyncView);
@@ -226,10 +236,10 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         }
         MenuCategory.prototype.render = function () {
             var _this = this;
-            var classNames = _super.prototype.preRender.call(this);
+            var classNames = this.preRender();
             if (this.props.isSelected)
                 classNames.push('active');
-            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelectCategory(_this.props.category); }}, this.props.category.__syncNodeId + this.props.category.name));
+            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelectCategory(_this.props.category); }}, this.props.category.name));
         };
         return MenuCategory;
     })(bv.SyncView);
@@ -242,15 +252,13 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         }
         MenuItems.prototype.render = function () {
             var _this = this;
-            console.log(this.name + ': Render');
-            var nodes = Object.keys(this.props.items).map(function (key) {
-                if (key === 'lastModified')
-                    return;
-                var item = _this.props.items[key];
+            var classNames = this.preRender(['menu-items']);
+            var items = Utils.toArray(this.props.items);
+            var nodes = items.map(function (item) {
                 var isSelected = item === _this.props.selectedItem;
                 return (React.createElement(MenuItem, {"key": item.key, "item": item, "isSelected": isSelected, "onSelect": _this.props.onSelectItem.bind(_this)}));
             });
-            return (React.createElement("div", {"className": "menu-items"}, React.createElement("ul", null, nodes)));
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("ul", null, nodes)));
         };
         return MenuItems;
     })(bv.SyncView);
@@ -264,10 +272,10 @@ define(["require", "exports", 'react/addons', './BaseViews'], function (require,
         }
         MenuItem.prototype.render = function () {
             var _this = this;
-            var classNames = _super.prototype.preRender.call(this);
+            var classNames = this.preRender();
             if (this.props.isSelected)
                 classNames.push('active');
-            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(_this.props.item); }}, React.createElement("span", {"className": "name"}, this.props.item.__syncNodeId + ' ' + this.props.item.name), React.createElement("span", {"className": "price"}, this.props.item.price)));
+            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(_this.props.item); }}, React.createElement("span", {"className": "name"}, this.props.item.name), React.createElement("span", {"className": "price"}, Utils.formatCurrency(this.props.item.price))));
         };
         return MenuItem;
     })(bv.SyncView);

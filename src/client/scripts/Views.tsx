@@ -6,9 +6,11 @@ import React = require('react/addons');
 import Sync = require('./SyncNodeSocket');
 import Models = require('./Models');
 import Nav = require('./Navigation');
+import Logger = require('./Logger');
 import Rec = require('./Reconciliation');
 import Menu = require('./Menu');
-import Logger = require('./Logger');
+import Flow = require('./Flow');
+
 
 'use strict';
 
@@ -47,7 +49,7 @@ export class MainView extends React.Component<{}, MainViewState> {
         };
 
         sync.onUpdated((updated: Models.Reconciliation) => {
-            console.log('     setting state: ', updated);
+            //console.log('     setting state: ', updated);
             this.setState({ reconciliation: updated });
         });
 
@@ -65,17 +67,22 @@ export class MainView extends React.Component<{}, MainViewState> {
     }
     render() {
         //var rec = this.state.reconciliation;
-        console.log('Render: MainView');
+        //console.log('Render: MainView');
         var className = (this.state.isNavOpen ? 'open' : '');
+
+        var headerClassName = 'sticky-header ' + (this.state.syncSocketStatus === 'Connected' ? '' : 'error');
+
         return (
             <div>
-            <div className="sticky-header">
+            <div className={headerClassName}>
               <ul className={className}>
                 <li className="hamburger-icon" onClick={() => { this.setState({ isNavOpen: !this.state.isNavOpen }) } }><span className="col-2 fa fa-bars"></span></li>
                 <li><Nav.NavigationItem hash="#" onSelect={ () => { this.closeNav(); } }><span className="col-2">RMS</span></Nav.NavigationItem></li>
                 <li className="hamburger"><Nav.NavigationItem hash="#reconciliation" onSelect={ () => { this.closeNav(); } }><span className="col-6">Reconciliation</span></Nav.NavigationItem></li>
                 <li className="hamburger"><Nav.NavigationItem hash="#menu" onSelect={ () => { this.closeNav(); } }><span className="col-5">Menu</span></Nav.NavigationItem></li>
+                <li className="hamburger"><Nav.NavigationItem hash="#diagrams" onSelect={ () => { this.closeNav(); } }><span className="col-5">Diagrams</span></Nav.NavigationItem></li>
                 <li className="hamburger"><Nav.NavigationItem hash="#kitchen" onSelect={ () => { this.closeNav(); } }><span className="col-5">Kitchen</span></Nav.NavigationItem></li>
+                <li className="hamburger status">Server: {this.state.syncSocketStatus}</li>
               </ul>
             </div>
             <Nav.NavigationView hash="#">
@@ -86,8 +93,8 @@ export class MainView extends React.Component<{}, MainViewState> {
             </Nav.NavigationView>
             <Nav.NavigationView hash="#reconciliation"><Rec.ReconciliationView reconciliation={this.state.reconciliation}></Rec.ReconciliationView></Nav.NavigationView>
             <Nav.NavigationView hash="#menu"><Menu.MenuEdit menu={this.state.reconciliation.menu}></Menu.MenuEdit></Nav.NavigationView>
-
             <Nav.NavigationView hash="#kitchen"><h1>The kitchen!</h1></Nav.NavigationView>
+            <Nav.NavigationView hash="#diagrams"><Flow.FlowDiagrams></Flow.FlowDiagrams></Nav.NavigationView>
           */  }
           { /*
             <kitchenViews.KitchenOrdersView></kitchenViews.KitchenOrdersView>

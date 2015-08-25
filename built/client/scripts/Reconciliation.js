@@ -4,7 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './BaseViews', './Menu'], function (require, exports, React, Base, Menu) {
+define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'], function (require, exports, React, Base, Menu, Utils) {
     var ReconciliationView = (function (_super) {
         __extends(ReconciliationView, _super);
         function ReconciliationView(props) {
@@ -14,13 +14,32 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu'], function
                 selectedTicket: null
             };
         }
+        ReconciliationView.prototype.componentWillReceiveProps = function (nextProps) {
+            if (nextProps.reconciliation.tickets !== this.props.reconciliation.tickets) {
+                if (this.state.selectedTicket) {
+                    this.setState({ selectedTicket: nextProps.reconciliation.tickets[this.state.selectedTicket.key] });
+                }
+            }
+        };
         ReconciliationView.prototype.handleSelectTicket = function (ticket) {
             this.setState({ selectedTicket: ticket });
         };
+        ReconciliationView.prototype.handleSelectMenuItem = function (item) {
+            var ticket = this.state.selectedTicket;
+            if (ticket) {
+                var ticketItem = {
+                    key: new Date().toISOString(),
+                    name: item.name,
+                    price: item.price,
+                    quantity: 1
+                };
+                ticket.items.set(ticketItem.key, ticketItem);
+            }
+        };
         ReconciliationView.prototype.render = function () {
             var _this = this;
-            console.log(this.name, 'Render');
-            return (React.createElement("div", {"className": "reconciliation"}, React.createElement(Tickets, {"tickets": this.props.reconciliation.tickets, "onSelectTicket": this.handleSelectTicket.bind(this), "selectedTicket": this.state.selectedTicket}), this.state.selectedTicket ? (React.createElement(TicketDetailsView, {"ticket": this.state.selectedTicket, "onRemove": function (ticket) { _this.props.reconciliation.tickets.remove(ticket.key); _this.setState({ selectedTicket: null }); }})) : null, React.createElement(Menu.Menu, {"menu": this.props.reconciliation.menu})));
+            var classNames = this.preRender(['reconciliation']);
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement(Tickets, {"tickets": this.props.reconciliation.tickets, "onSelectTicket": this.handleSelectTicket.bind(this), "selectedTicket": this.state.selectedTicket}), this.state.selectedTicket ? (React.createElement(TicketDetails, {"ticket": this.state.selectedTicket, "onRemove": function (ticket) { _this.props.reconciliation.tickets.remove(ticket.key); _this.setState({ selectedTicket: null }); }})) : null, React.createElement(Menu.Menu, {"menu": this.props.reconciliation.menu, "onItemSelected": this.handleSelectMenuItem.bind(this)})));
         };
         return ReconciliationView;
     })(Base.SyncView);
@@ -31,10 +50,13 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu'], function
             _super.call(this, props);
             this.name = '  Tickets';
             this.state = {
-                filteredTickets: this.getFilteredTickets('', this.props.tickets)
+                showPaidTickets: false,
+                filteredTickets: this.getFilteredTickets('', this.props.tickets),
+                filter: ''
             };
         }
-        Tickets.prototype.componentWillReceiveProps = function (nextProps) {
+        Tickets.prototype.componentWillReceiveProps = function (nextProps, nextState) {
+            console.log('TicketsView receive new props:', nextProps, nextState);
             if (nextProps.tickets !== this.props.tickets) {
                 this.updateFilteredTickets(nextProps.tickets, this.filterInput.value);
             }
@@ -44,7 +66,8 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu'], function
             if (e.keyCode === 13) {
                 var ticket = {
                     key: new Date().toISOString(),
-                    name: e.target.value
+                    name: e.target.value,
+                    items: {}
                 };
                 e.target.value = '';
                 var result = this.props.tickets.set(ticket.key, ticket);
@@ -52,7 +75,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu'], function
                 this.props.onSelectTicket(result.value);
             }
             else {
-                this.updateFilteredTickets(this.props.tickets, e.target.value);
+                this.updateFilteredTickets(tickets, e.target.value);
             }
         };
         Tickets.prototype.updateFilteredTickets = function (tickets, filter) {
@@ -60,29 +83,37 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu'], function
             this.setState({ filteredTickets: filteredTickets });
         };
         Tickets.prototype.getFilteredTickets = function (filter, tickets) {
+            var _this = this;
+            console.log('get filtered tickets: ', tickets);
             var normalized = filter.trim().toLowerCase();
-            if (normalized.length === 0)
-                return tickets;
-            var filtered = {};
-            Object.keys(tickets).forEach(function (key) {
-                if (key !== 'lastModified' && tickets[key].name.toLowerCase().indexOf(normalized) >= 0) {
-                    filtered[key] = tickets[key];
+            var ticketsArray = Utils.toArray(tickets);
+            console.log('ticketsArray: ', ticketsArray);
+            var filtered = ticketsArray.filter(function (ticket) {
+                console.log('ticket:', ticket);
+                if (normalized.length === 0 || ticket.name.toLowerCase().indexOf(normalized) >= 0) {
+                    console.log(!ticket.isPaid, _this.state.showPaidTickets);
+                    return !ticket.isPaid || _this.state.showPaidTickets;
                 }
+                return false;
             });
+            console.log('filtered: ', filtered);
             return filtered;
+        };
+        Tickets.prototype.toggleShowPaid = function () {
+            var _this = this;
+            this.setState({ showPaidTickets: !this.state.showPaidTickets }, function () {
+                _this.updateFilteredTickets(_this.props.tickets, _this.filterInput.value);
+            });
         };
         Tickets.prototype.render = function () {
             var _this = this;
-            console.log(this.name, 'render');
-            var tickets = this.state.filteredTickets;
-            var nodes = Object.keys(tickets).map(function (key) {
-                if (key !== 'lastModified') {
-                    var ticket = tickets[key];
-                    var isSelected = _this.props.selectedTicket === ticket;
-                    return (React.createElement(Ticket, {"key": key, "isSelected": isSelected, "ticket": ticket, "onSelect": function (ticket) { _this.props.onSelectTicket(ticket); }}));
-                }
+            console.log('filteredTickets: ', this.state.filteredTickets);
+            var classNames = this.preRender(['ticket-list']);
+            var nodes = this.state.filteredTickets.map(function (ticket) {
+                var isSelected = _this.props.selectedTicket === ticket;
+                return (React.createElement(Ticket, {"key": ticket.key, "isSelected": isSelected, "ticket": ticket, "onSelect": function (ticket) { _this.props.onSelectTicket(ticket); }}));
             });
-            return (React.createElement("div", {"className": "ticket-list"}, React.createElement("input", {"className": "name-filter", "ref": function (el) {
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("div", {"className": "btn", "onClick": function () { _this.toggleShowPaid(); }}, "Paid: ", this.state.showPaidTickets ? 'Shown' : 'Hidden'), React.createElement("input", {"className": "name-filter", "ref": function (el) {
                 var input = React.findDOMNode(el);
                 if (input) {
                     _this.filterInput = input;
@@ -108,26 +139,79 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu'], function
             if (this.props.isSelected)
                 classNames.push('active');
             var ticket = this.props.ticket;
-            console.log('       Render: Ticket: ' + ticket.name);
             return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(ticket); }}, ticket.name));
         };
         return Ticket;
     })(Base.SyncView);
     exports.Ticket = Ticket;
-    var TicketDetailsView = (function (_super) {
-        __extends(TicketDetailsView, _super);
-        function TicketDetailsView() {
-            _super.apply(this, arguments);
-            this.name = '        TicketDetailsView';
+    var TicketDetails = (function (_super) {
+        __extends(TicketDetails, _super);
+        function TicketDetails(props) {
+            _super.call(this, props);
+            this.name = '        TicketDetails';
+            this.state = {
+                selectedItem: null
+            };
         }
-        TicketDetailsView.prototype.render = function () {
+        TicketDetails.prototype.render = function () {
             var _this = this;
+            var classNames = this.preRender(['ticket-details']);
             var ticket = this.props.ticket;
-            console.log(this.name, ticket.name);
-            return (React.createElement("div", {"className": "ticket-details"}, React.createElement("h3", null, ticket.name), React.createElement("button", {"onClick": function () { _this.props.onRemove(_this.props.ticket); }}, "Delete")));
+            var items = Utils.toArray(ticket.items);
+            var nodes = items.map(function (item) {
+                return (React.createElement(TicketItem, {"key": item.key, "item": item, "onSelect": function (item) { _this.setState({ selectedItem: item }); _this.refs['ticketItemEditModal'].show(); }}));
+            });
+            var totals = Utils.ticketTotals(this.props.ticket);
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("h3", null, ticket.name, React.createElement("button", {"onClick": function () { if (confirm('Remove?'))
+                _this.props.onRemove(_this.props.ticket); }}, "X")), React.createElement("ul", null, nodes), React.createElement("div", {"className": "ticket-footer"}, React.createElement("button", {"onClick": function () { ticket.set('isPaid', !ticket.isPaid); }}, ticket.isPaid ? 'Paid' : 'Open'), React.createElement("div", {"className": "total"}, "Total: ", Utils.formatCurrency(totals.total))), React.createElement(Base.ModalView, {"ref": "ticketItemEditModal"}, this.state.selectedItem ? (React.createElement(TicketItemEdit, {"item": this.state.selectedItem, "onSave": function (item) {
+                _this.props.ticket.items.set(item.key, item);
+                _this.refs['ticketItemEditModal'].hide();
+            }})) : null)));
         };
-        return TicketDetailsView;
+        return TicketDetails;
     })(Base.SyncView);
-    exports.TicketDetailsView = TicketDetailsView;
+    exports.TicketDetails = TicketDetails;
+    var TicketItem = (function (_super) {
+        __extends(TicketItem, _super);
+        function TicketItem() {
+            _super.apply(this, arguments);
+            this.name = '          TicketItem';
+        }
+        TicketItem.prototype.render = function () {
+            var _this = this;
+            var classNames = this.preRender();
+            var item = this.props.item;
+            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(_this.props.item); }}, React.createElement("span", {"className": "quantity"}, item.quantity), React.createElement("span", {"className": "name"}, item.name), React.createElement("span", {"className": "price"}, Utils.formatCurrency(Utils.ticketItemTotals(item).total)), React.createElement("span", {"className": "note"}, item.note)));
+        };
+        return TicketItem;
+    })(Base.SyncView);
+    exports.TicketItem = TicketItem;
+    var TicketItemEdit = (function (_super) {
+        __extends(TicketItemEdit, _super);
+        function TicketItemEdit(props) {
+            _super.call(this, props);
+            this.name = '          TicketItemEdit';
+            this.state = {
+                mutable: JSON.parse(JSON.stringify(props.item)),
+                isNew: false,
+                isDirty: false
+            };
+        }
+        TicketItemEdit.prototype.save = function () {
+            this.props.onSave(this.state.mutable);
+        };
+        TicketItemEdit.prototype.cancel = function () {
+        };
+        TicketItemEdit.prototype.remove = function () {
+        };
+        TicketItemEdit.prototype.render = function () {
+            var _this = this;
+            var classNames = this.preRender(['ticket-item-details']);
+            var item = this.props.item;
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("input", {"value": this.state.mutable.quantity, "onChange": this.handleChange.bind(this, 'mutable', 'quantity')}), React.createElement("input", {"value": this.state.mutable.name, "onChange": this.handleChange.bind(this, 'mutable', 'name')}), React.createElement("input", {"value": this.state.mutable.price, "onChange": this.handleChange.bind(this, 'mutable', 'price')}), React.createElement("input", {"value": this.state.mutable.note, "onChange": this.handleChange.bind(this, 'mutable', 'note')}), React.createElement(Base.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.state.isNew ? null : this.remove.bind(this), "isDirty": this.state.isDirty})));
+        };
+        return TicketItemEdit;
+    })(Base.SyncView);
+    exports.TicketItemEdit = TicketItemEdit;
 });
 //# sourceMappingURL=Reconciliation.js.map

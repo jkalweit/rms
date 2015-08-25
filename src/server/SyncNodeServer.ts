@@ -9,6 +9,7 @@ interface Request {
     data?: any;
 }
 
+
 class Response {
     requestGuid: string;
     stamp: Date;
@@ -48,7 +49,7 @@ export class SyncNodeServer {
             console.log('getLatest', this.data.lastModified, clientLastModified);
             if (!clientLastModified || clientLastModified < this.data.lastModified) {
                 //console.log('sending: ', JSON.stringify(reconciliation));
-                console.log('sending latest', this.data);
+                //console.log('sending latest', this.data);
                 socket.emit('latest', this.data);
             } else {
                 console.log('already has latest.');
@@ -60,6 +61,9 @@ export class SyncNodeServer {
             //console.log('Doing merge: ', merge);
             if (typeof merge !== 'object') return merge;
             Object.keys(merge).forEach(key => {
+                if(key === 'lastModified' && obj[key] > merge[key]) {
+                  console.error('Server version lastModified GREATER THAN merge lastModified', obj[key], merge[key]);
+                }
                 if (key === '__remove') {
                     delete obj[merge[key]];
                 } else {
@@ -74,7 +78,7 @@ export class SyncNodeServer {
 
         socket.on('update', (request: Request) => {
             var merge = request.data;
-            console.log('Do merge: ', merge);
+            //console.log('Do merge: ', merge);
             doMerge(this.data, merge);
             this.persistence.persist(this.data);
             socket.emit('updateResponse', new Response(request.requestGuid, null));

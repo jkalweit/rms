@@ -5,6 +5,30 @@ export interface ISyncObject {
     lastModified?: string;
 }
 
+
+
+
+export interface FlowDiagrams extends ISyncObject {
+    diagrams: {[key: string]: FlowDiagram};
+}
+export interface FlowDiagram extends ISyncObject {
+    key: string;
+    name: string;
+    items: { [key: string]: FlowDiagramItem };
+}
+export interface FlowDiagramItem extends ISyncObject {
+    key: string;
+    text: string;
+    position: {x: number, y: number};
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+
+
+
 export interface Reconciliation extends ISyncObject {
     name?: string;
     menu?: Menu;
@@ -29,4 +53,14 @@ export interface MenuItem extends ISyncObject {
 export interface Ticket extends ISyncObject {
     key?: string;
     name?: string;
+    items?: {[key: string]: TicketItem};
+    isPaid?: boolean;
+}
+
+export interface TicketItem extends ISyncObject {
+    key?: string;
+    name?: string;
+    price?: number;
+    quantity?: number;
+    note?: string;
 }

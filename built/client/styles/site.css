@@ -22,7 +22,7 @@
   z-index: 10;
 }
 .scroll-vertical {
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 body {
@@ -123,6 +123,8 @@ li {
   background-color: #ffffff;
   color: rgba(0, 0, 0, 0.87);
   text-align: center;
+  height: 40px;
+  padding: 10px;
   user-select: none;
   transition: all 100ms ease-out;
   transition-property: color, background-color;
@@ -176,7 +178,7 @@ button {
 }
 .sticky-header {
   position: fixed;
-  z-index: 10;
+  z-index: 1;
   top: 0;
   left: 0;
   width: 100%;
@@ -186,6 +188,9 @@ button {
   color: rgba(0, 0, 0, 0.54);
   box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.5);
 }
+.sticky-header.error {
+  background-color: #f44336;
+}
 .sticky-header ul {
   list-style-type: none;
   margin: 0;
@@ -193,6 +198,9 @@ button {
   height: 100%;
   width: 100%;
   overflow: hidden;
+}
+.sticky-header ul .status {
+  padding: 15px 10px;
 }
 .sticky-header ul .link {
   display: block;
@@ -286,7 +294,6 @@ button {
   }
   .sticky-header ul li {
     height: 50px;
-    background-color: #4caf50;
     overflow: hidden;
   }
   .sticky-header .hamburger {
@@ -300,6 +307,7 @@ button {
     position: relative;
     display: block;
     float: none;
+    background-color: #4caf50;
     width: 100%;
     border: 1px solid rgba(0, 0, 0, 0.12);
   }
@@ -339,6 +347,15 @@ button {
 .log-view ul li .path {
   padding-right: 5px;
   color: #1976d2;
+}
+.menu,
+.menu-edit {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .menu .h,
 .menu-edit .h {
@@ -408,11 +425,10 @@ button {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 200px;
 }
 .menu .menu-categories ul,
 .menu .menu-items ul {
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
   list-style: none;
   position: absolute;
@@ -430,6 +446,7 @@ button {
   margin: 0;
   padding: 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  overflow: hidden;
 }
 .menu .menu-categories ul li:hover,
 .menu .menu-items ul li:hover {
@@ -462,13 +479,14 @@ button {
 }
 .menu .menu-categories {
   right: 0;
+  width: 150px;
 }
 .menu .menu-items {
-  right: 200px;
+  right: 150px;
+  width: 250px;
 }
 .menu .menu-categories,
 .menu .menu-items {
-  width: 50%;
   height: 100%;
   border-right: 1px solid rgba(0, 0, 0, 0.12);
 }
@@ -482,7 +500,6 @@ button {
 .menu-edit .menu-category-details,
 .menu-edit .menu-item-details {
   position: relative;
-  float: right;
   background-color: #e3f2fd;
   margin: 10px;
   width: 400px;
@@ -670,10 +687,10 @@ button {
   padding: 10px;
 }
 .reconciliation .ticket-list ul {
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
   position: absolute;
-  top: 40px;
+  top: 80px;
   bottom: 0;
   left: 0;
   right: 0;
@@ -706,5 +723,145 @@ button {
   width: 300px;
   background-color: #FFFFFF;
   margin: 10px;
-  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+}
+.reconciliation .ticket-details .ticket-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 50px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 10px;
+}
+.reconciliation .ticket-details .ticket-footer .total {
+  float: right;
+}
+.reconciliation .ticket-details button {
+  float: right;
+}
+.reconciliation .ticket-details h3 {
+  height: 40px;
+}
+.reconciliation .ticket-details ul {
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: absolute;
+  top: 40px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.reconciliation .ticket-details ul li {
+  width: 100%;
+  min-height: 30px;
+  margin: 0;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.reconciliation .ticket-details ul li:hover {
+  color: #FFFFFF;
+  background-color: #ba68c8;
+}
+.reconciliation .ticket-details ul li:active,
+.reconciliation .ticket-details ul li.active {
+  color: #FFFFFF;
+  background-color: #9c27b0;
+}
+.reconciliation .ticket-details ul li .quantity,
+.reconciliation .ticket-details ul li .name {
+  float: left;
+  padding-right: 5px;
+}
+.reconciliation .ticket-details ul li .quantity {
+  width: 2em;
+  min-height: 1px;
+}
+.reconciliation .ticket-details ul li .price {
+  float: right;
+}
+.reconciliation .ticket-details ul li .note {
+  clear: both;
+}
+.reconciliation .ticket-item-details {
+  position: relative;
+  background-color: #f3e5f5;
+  margin: 10px;
+  width: 400px;
+  min-height: 300px;
+}
+.reconciliation .ticket-item-details .inner {
+  padding: 10px;
+}
+.reconciliation .ticket-item-details .inner p {
+  clear: both;
+}
+.flow-diagram-edit {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.flow-diagram-edit .h {
+  width: 100%;
+  color: #FFFFFF;
+  margin: 0;
+  background-color: #7b1fa2;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.flow-diagram-edit h1 {
+  width: 100%;
+  color: #FFFFFF;
+  margin: 0;
+  background-color: #7b1fa2;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.flow-diagram-edit h2 {
+  width: 100%;
+  color: #FFFFFF;
+  margin: 0;
+  background-color: #7b1fa2;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.flow-diagram-edit h3 {
+  width: 100%;
+  color: #FFFFFF;
+  margin: 0;
+  background-color: #7b1fa2;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.flow-diagram-edit h4 {
+  width: 100%;
+  color: #FFFFFF;
+  margin: 0;
+  background-color: #7b1fa2;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.flow-diagram-edit h5 {
+  width: 100%;
+  color: #FFFFFF;
+  margin: 0;
+  background-color: #7b1fa2;
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.flow-diagram-edit .flow-diagram-item {
+  position: absolute;
+  background-color: #ce93d8;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 5px;
+  text-align: center;
+  transition: all 50ms;
+}
+.flow-diagram-edit .flow-diagram-item.dragging {
+  z-index: 1;
+  box-shadow: 5px 5px 5px #777777;
 }

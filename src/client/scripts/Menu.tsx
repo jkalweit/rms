@@ -5,6 +5,7 @@ import React = require('react/addons');
 import Models = require('./Models');
 import Sync = require('./SyncNode');
 import bv = require('./BaseViews');
+import Utils = require('./Utils');
 
 
 export interface MenuEditProps {
@@ -20,71 +21,111 @@ export class MenuEdit extends bv.SyncView<MenuEditProps, MenuEditState> {
         super(props);
         this.state = { selectedCategory: null, selectedItem: null };
     }
-    componentWillReceiveProps(nextProps: MenuEditProps, nextState: MenuEditState) {
-      if(nextProps.menu && this.state.selectedCategory) this.setState({ selectedCategory: nextProps.menu.categories[this.state.selectedCategory.key] });
+    componentWillReceiveProps(nextProps: MenuEditProps) {
+        if(nextProps.menu.categories !== this.props.menu.categories) {
+          if(this.state.selectedCategory) {
+            var replacementCategory = nextProps.menu.categories[this.state.selectedCategory.key];
+            var nextState: MenuEditState = { selectedCategory: replacementCategory, selectedItem: null };
+            if(this.state.selectedItem) {
+              nextState.selectedItem = replacementCategory.items[this.state.selectedItem.key];
+            }
+            this.setState(nextState);
+          }
+        }
     }
     newCategory() {
         var mutable = {
-          type: 'Food',
-          name: '',
-          note: '',
-          items: {}
+            type: 'Food',
+            name: '',
+            note: '',
+            items: {}
         } as Models.MenuCategory;
-        this.setState({ selectedCategory: mutable, selectedItem: null });
+        this.setState({ selectedCategory: mutable, selectedItem: null }, () => {
+            (this.refs['menuCategoryEditModal'] as bv.ModalView).show();
+        });
     }
     newItem() {
         var mutable = {
-          name: '',
-          price: 0
+            name: '',
+            price: 0
         } as Models.MenuItem;
-        this.setState({ selectedItem: mutable });
+        this.setState({ selectedItem: mutable }, () => {
+            (this.refs['menuItemEditModal'] as bv.ModalView).show();
+        });
     }
     render() {
-        console.log(this.name + ': Render');
+        //console.log(this.name + ': Render');
+        var classNames = this.preRender(['menu-edit']);
         return (
-            <div className="menu-edit">
-              ID: { this.state.selectedCategory ? this.state.selectedCategory.__syncNodeId : 'none selected' }
+            <div className={classNames.join(' ')}>
               <button onClick={this.newCategory.bind(this) }>New Category</button>
               <button onClick={this.newItem.bind(this) }>New Item</button>
               <Menu menu={this.props.menu}
               selectedCategory={this.state.selectedCategory}
-              onCategorySelected={(category) => { this.setState({ selectedCategory: category, selectedItem: null }); }}
+              onCategorySelected={(category) => {
+                if(this.state.selectedCategory === category) {
+                  (this.refs['menuCategoryEditModal'] as bv.ModalView).show();
+                } else {
+                  this.setState({ selectedCategory: category, selectedItem: null });
+                }
+              } }
               selectedItem={this.state.selectedItem}
-              onItemSelected={(item) => { this.setState({ selectedItem: item }); }}></Menu>
+              onItemSelected={(item) => { this.setState({ selectedItem: item }); (this.refs['menuItemEditModal'] as bv.ModalView).show(); } }></Menu>
+              <bv.ModalView ref="menuCategoryEditModal">
+
               { this.state.selectedCategory ?
-                <MenuCategoryEdit
+                  <MenuCategoryEdit
                   menu={this.props.menu}
                   category={this.state.selectedCategory}
                   onSave={(mutable: Models.MenuCategory) => {
-                    mutable.key = mutable.key || new Date().toISOString();
-                    var result = (this.props.menu.categories as Sync.ISyncNode).set(mutable.key, mutable);
-                    this.setState({ selectedCategory: result.value, selectedItem: null });
-                  }}
-                  onCancel={() => { this.setState({ selectedCategory: null, selectedItem: null }); } }
+                      mutable.key = mutable.key || new Date().toISOString();
+                      var result = (this.props.menu.categories as Sync.ISyncNode).set(mutable.key, mutable);
+                      this.setState({ selectedCategory: result.value, selectedItem: null }, () => {
+                          (this.refs['menuCategoryEditModal'] as bv.ModalView).hide();
+                      });
+                  } }
+                  onCancel={() => {
+                      (this.refs['menuCategoryEditModal'] as bv.ModalView).hide();
+                  } }
                   onRemove={(key: string) => {
-                    (this.props.menu.categories as Sync.ISyncNode).remove(key);
-                    this.setState({ selectedCategory: null, selectedItem: null });
-                  }}
+                      (this.props.menu.categories as Sync.ISyncNode).remove(key);
+                      this.setState({ selectedCategory: null, selectedItem: null }, () => {
+                          (this.refs['menuCategoryEditModal'] as bv.ModalView).hide();
+                      });
+                  } }
                   ></MenuCategoryEdit>
                   : null }
-              { this.state.selectedItem ?
-                <MenuItemEdit
-                  category={this.state.selectedCategory}
-                  item={this.state.selectedItem}
-                  onSave={(mutable: Models.MenuItem) => {
-                    mutable.key = mutable.key || new Date().toISOString();
-                    console.log('   Saving menu item: ', mutable);
-                    console.log('   Saving  to menu items: ', this.state.selectedCategory.items);
-                    var result = (this.state.selectedCategory.items as Sync.ISyncNode).set(mutable.key, mutable);
-                    this.setState({ selectedItem: result.value as Models.MenuItem });
-                  }}
-                  onCancel={() => { this.setState({ selectedItem: null }); } }
-                  onRemove={(key: string) => {
-                    (this.state.selectedCategory.items as Sync.ISyncNode).remove(key);
-                    this.setState({ selectedItem: null });
-                  }}
-                  ></MenuItemEdit>
-                  : null }
+
+              </bv.ModalView>
+
+              <bv.ModalView ref="menuItemEditModal">
+
+                { this.state.selectedItem ?
+                    <MenuItemEdit
+                    category={this.state.selectedCategory}
+                    item={this.state.selectedItem}
+                    onSave={(mutable: Models.MenuItem) => {
+                        mutable.key = mutable.key || new Date().toISOString();
+                        var result = (this.state.selectedCategory.items as Sync.ISyncNode).set(mutable.key, mutable);
+                        this.setState({ selectedItem: result.value as Models.MenuItem }, () => {
+                            (this.refs['menuItemEditModal'] as bv.ModalView).hide();
+                        });
+                    } }
+                    onCancel={() => {
+                        this.setState({ selectedItem: null }, () => {
+                            (this.refs['menuItemEditModal'] as bv.ModalView).hide();
+                        });
+                    } }
+                    onRemove={(key: string) => {
+                        (this.state.selectedCategory.items as Sync.ISyncNode).remove(key);
+                        this.setState({ selectedItem: null }, () => {
+                            (this.refs['menuItemEditModal'] as bv.ModalView).hide();
+                        });
+                    } }
+                    ></MenuItemEdit>
+                    : null }
+
+              </bv.ModalView>
             </div>
         );
     }
@@ -113,21 +154,20 @@ export class Menu extends bv.SyncView<MenuProps, MenuState> {
         this.state = { selectedCategory: null }
     }
     componentWillReceiveProps(nextProps: MenuProps) {
-        console.log('Menu to receive new props:', nextProps);
         var newState = {} as any;
-        if(nextProps.selectedCategory) newState.selectedCategory = nextProps.selectedCategory;
-        if(nextProps.selectedItem) newState.selectedItem = nextProps.selectedItem;
-        console.log('Menu to receive new       state:', newState);
-        if(newState != {}) {
-          this.setState(newState);
+        if (nextProps.selectedCategory) newState.selectedCategory = nextProps.selectedCategory;
+        if (nextProps.selectedItem) newState.selectedItem = nextProps.selectedItem;
+        if (newState != {}) {
+            this.setState(newState);
         }
     }
     render() {
-        console.log(this.name + ': Render');
-        var menuItems = {} as {[key: string]: Models.MenuItem};
+        //console.log(this.name + ': Render');
+        var classNames = this.preRender(['menu']);
+        var menuItems = {} as { [key: string]: Models.MenuItem };
         if (this.state.selectedCategory) menuItems = this.state.selectedCategory.items;
         return (
-            <div className="menu">
+            <div className={classNames.join(' ')}>
               <MenuCategories
               categories={this.props.menu.categories}
               selectedCategory={ this.state.selectedCategory }
@@ -176,13 +216,13 @@ export class MenuCategoryEdit extends bv.SyncView<MenuCategoryEditProps, MenuCat
         }
     }
     getState(props: MenuCategoryEditProps): MenuCategoryEditState {
-      var isNew = props.category.key ? false : true;
-      var mutable = JSON.parse(JSON.stringify(props.category));
-      return {
-          mutable: mutable,
-          isNew: isNew,
-          isDirty: false
-      };
+        var isNew = props.category.key ? false : true;
+        var mutable = JSON.parse(JSON.stringify(props.category));
+        return {
+            mutable: mutable,
+            isNew: isNew,
+            isDirty: false
+        };
     }
     cancel() {
         this.props.onCancel();
@@ -196,31 +236,22 @@ export class MenuCategoryEdit extends bv.SyncView<MenuCategoryEditProps, MenuCat
         this.props.onRemove(this.props.category.key);
         //Store.menuCategoryRemove(this.props.category.key, () => { this.props.onRemoved(); });
     }
-    handleChange(fieldName: string, event: any) {
-        var mutable = this.state.mutable;
-        if (mutable[fieldName] !== event.target.value) {
-            mutable[fieldName] = event.target.value;
-            this.setState({
-                mutable: mutable,
-                isDirty: true
-            });
-        }
-    }
     render() {
-        console.log(this.name + ': Render Details: ' + this.props.category.name);
+        //console.log(this.name + ': Render Details: ' + this.props.category.name);
+        var classNames = this.preRender(['menu-category-details']);
         var mutable = this.state.mutable;
         return (
-            <div className="menu-category-details">
+            <div className={classNames.join(' ')}>
               <h3>Edit Category</h3>
               <div className="inner">
-                <span className="col-4">Type: </span> <select className="col-4" ref="type" value={mutable.type} onChange={ this.handleChange.bind(this, "type") } >
+                <span className="col-4">Type: </span> <select className="col-4" ref="type" value={mutable.type} onChange={ this.handleChange.bind(this, 'mutable', 'type') } >
                     <option></option>
                     <option>Food</option>
                     <option>Alcohol</option>
                 </select>
                 <br />
-                <p><span className="col-4">Name: </span> <input className="col-6" ref="name" value={ mutable.name } onChange={ this.handleChange.bind(this, "name") } /></p>
-                <p><span className="col-4">Note: </span> <input className="col-10" value={ mutable.note } onChange={ this.handleChange.bind(this, "note") } /></p>
+                <p><span className="col-4">Name: </span> <input className="col-6" ref="name" value={ mutable.name } onChange={ this.handleChange.bind(this, 'mutable', 'name') } /></p>
+                <p><span className="col-4">Note: </span> <input className="col-10" value={ mutable.note } onChange={ this.handleChange.bind(this, 'mutable', 'note') } /></p>
                 <bv.SimpleConfirmView
                 onCancel={() => { this.cancel() } }
                 onSave={() => { this.save() } }
@@ -267,13 +298,13 @@ export class MenuItemEdit extends bv.SyncView<MenuItemEditProps, MenuItemEditSta
         }
     }
     getState(props: MenuItemEditProps): MenuItemEditState {
-      var isNew = props.item.key ? false : true;
-      var mutable = JSON.parse(JSON.stringify(props.item));
-      return {
-          mutable: mutable,
-          isNew: isNew,
-          isDirty: false
-      };
+        var isNew = props.item.key ? false : true;
+        var mutable = JSON.parse(JSON.stringify(props.item));
+        return {
+            mutable: mutable,
+            isNew: isNew,
+            isDirty: false
+        };
     }
     cancel() {
         this.props.onCancel();
@@ -284,24 +315,15 @@ export class MenuItemEdit extends bv.SyncView<MenuItemEditProps, MenuItemEditSta
     remove() {
         this.props.onRemove(this.props.item.key);
     }
-    handleChange(fieldName: string, event: KeyboardEvent) {
-        var mutable = this.state.mutable;
-        if (mutable[fieldName] !== event.target['value']) {
-            mutable[fieldName] = event.target['value'];
-            this.setState({
-                mutable: mutable,
-                isDirty: true
-            });
-        }
-    }
     render() {
+        var classNames = this.preRender(['menu-category-details']);
         var mutable = this.state.mutable;
         return (
-            <div className="menu-category-details">
+            <div className={classNames.join(' ')}>
               <h3>Edit Item</h3>
               <div className="inner">
-                <p><span className="col-4">Name: </span> <input className="col-6" ref="name" value={ mutable.name } onChange={ this.handleChange.bind(this, "name") } /></p>
-                <p><span className="col-4">Price: </span> <input className="col-2" value={ mutable.price.toString() } onChange={ this.handleChange.bind(this, "price") } /></p>
+                <p><span className="col-4">Name: </span> <input className="col-6" ref="name" value={ mutable.name } onChange={ this.handleChange.bind(this, 'mutable', 'name') } /></p>
+                <p><span className="col-4">Price: </span> <input className="col-2" value={ mutable.price.toString() } onChange={ this.handleChange.bind(this, 'mutable', 'price') } /></p>
                 <bv.SimpleConfirmView
                 onCancel={() => { this.cancel() } }
                 onSave={() => { this.save() } }
@@ -323,22 +345,22 @@ export class MenuItemEdit extends bv.SyncView<MenuItemEditProps, MenuItemEditSta
 
 
 export interface MenuCategoriesProps {
-    categories: {[key: string]: Models.MenuCategory};
+    categories: { [key: string]: Models.MenuCategory };
     selectedCategory: Models.MenuCategory;
     onSelectCategory(category: Models.MenuCategory): void;
 }
 export class MenuCategories extends bv.SyncView<MenuCategoriesProps, any> {
     name: string = '    MenuCategories';
     render() {
-        console.log(this.name + ': Render');
-        var nodes = Object.keys(this.props.categories).map((key) => {
-            if(key === 'lastModified') return; //skip lastModified property
-            var category = this.props.categories[key];
+        var classNames = this.preRender(['menu-categories']);
+        //console.log(this.name + ': Render');
+        var categories = Utils.toArray(this.props.categories);
+        var nodes = categories.map((category: Models.MenuCategory) => {
             var isSelected = category === this.props.selectedCategory;
-            return (<MenuCategory key={key} category={ category } isSelected={isSelected} onSelectCategory={ this.props.onSelectCategory.bind(this) }></MenuCategory>);
+            return (<MenuCategory key={category.key} category={ category } isSelected={isSelected} onSelectCategory={ this.props.onSelectCategory.bind(this) }></MenuCategory>);
         });
         return (
-            <div className="menu-categories">
+            <div className={classNames.join(' ')}>
               <ul>
                 { nodes }
               </ul>
@@ -359,10 +381,10 @@ export interface MenuCategoryProps {
 export class MenuCategory extends bv.SyncView<MenuCategoryProps, bv.SyncViewState> {
     name: string = '      MenuCategory';
     render() {
-        var classNames = super.preRender();
-        if(this.props.isSelected) classNames.push('active');
+        var classNames = this.preRender();
+        if (this.props.isSelected) classNames.push('active');
         return (
-            <li className={classNames.join(' ')} onClick={() => { this.props.onSelectCategory(this.props.category); } }>{ this.props.category.__syncNodeId + this.props.category.name }</li>
+            <li className={classNames.join(' ') } onClick={() => { this.props.onSelectCategory(this.props.category); } }>{ this.props.category.name }</li>
         );
     }
 }
@@ -382,7 +404,7 @@ export class MenuCategory extends bv.SyncView<MenuCategoryProps, bv.SyncViewStat
 
 
 export interface MenuItemsProps {
-    items: {[key: string]: Models.MenuItem};
+    items: { [key: string]: Models.MenuItem };
     selectedItem: Models.MenuItem;
     onSelectItem(category: Models.MenuItem): void;
 }
@@ -390,15 +412,15 @@ export interface MenuItemsProps {
 export class MenuItems extends bv.SyncView<MenuItemsProps, {}> {
     name: string = '    MenuItems';
     render() {
-        console.log(this.name + ': Render');
-        var nodes = Object.keys(this.props.items).map((key) => {
-            if(key === 'lastModified') return; //skip lastModified prop
-            var item = this.props.items[key];
+        var classNames = this.preRender(['menu-items']);
+        //console.log(this.name + ': Render');
+        var items = Utils.toArray(this.props.items);
+        var nodes = items.map((item: Models.MenuItem) => {
             var isSelected = item === this.props.selectedItem;
             return (<MenuItem key={item.key} item={ item } isSelected={isSelected} onSelect={ this.props.onSelectItem.bind(this) }></MenuItem>);
         });
         return (
-            <div className="menu-items">
+            <div className={classNames.join(' ')}>
               <ul>
                 { nodes }
               </ul>
@@ -419,16 +441,16 @@ export interface MenuItemState {
 export class MenuItem extends bv.SyncView<MenuItemProps, MenuItemState> {
     name: string = '          MenuItem';
     constructor(props: MenuItemProps) {
-      super(props);
-      this.state = { isNew: true };
+        super(props);
+        this.state = { isNew: true };
     }
     render() {
-        var classNames = super.preRender();
-        if(this.props.isSelected) classNames.push('active');
+        var classNames = this.preRender();
+        if (this.props.isSelected) classNames.push('active');
         return (
-            <li className={classNames.join(' ')} onClick={ () => { this.props.onSelect(this.props.item); } }>
-              <span className="name">{ this.props.item.__syncNodeId + ' ' + this.props.item.name}</span>
-              <span className="price">{this.props.item.price}</span>
+            <li className={classNames.join(' ') } onClick={ () => { this.props.onSelect(this.props.item); } }>
+              <span className="name">{this.props.item.name}</span>
+              <span className="price">{ Utils.formatCurrency(this.props.item.price)}</span>
             </li>
         );
     }

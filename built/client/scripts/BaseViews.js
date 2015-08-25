@@ -28,7 +28,7 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
         };
         SyncView.prototype.shouldComponentUpdate = function (nextProps, nextState) {
             var propsDiff = this.isShallowDiff(this.props, nextProps);
-            var stateDiff = this.isShallowDiff(this.state, nextState);
+            var stateDiff = nextState ? this.isShallowDiff(this.state, nextState) : false;
             var shouldUpdate = propsDiff || stateDiff;
             return shouldUpdate;
         };
@@ -37,10 +37,20 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
                 this.setState({ isNew: true });
             }
         };
-        SyncView.prototype.preRender = function () {
+        SyncView.prototype.handleChange = function (mutableProp, fieldName, event) {
+            var mutable = this.state[mutableProp];
+            if (mutable[fieldName] !== event.target.value) {
+                mutable[fieldName] = event.target.value;
+                var nextState = { isDirty: true };
+                nextState[mutableProp] = mutable;
+                console.log('here', nextState);
+                this.setState(nextState);
+            }
+        };
+        SyncView.prototype.preRender = function (classNames) {
             var _this = this;
-            console.log(this.name, 'Render');
-            var classNames = ['flash'];
+            if (classNames === void 0) { classNames = []; }
+            classNames.push('flash');
             if (this.state.isNew) {
                 classNames.push('glow');
                 setTimeout(function () { _this.setState({ isNew: false }); }, 200);
@@ -99,5 +109,66 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
         return Button;
     })(React.Component);
     exports.Button = Button;
+    var ModalView = (function (_super) {
+        __extends(ModalView, _super);
+        function ModalView(props) {
+            _super.call(this, props);
+            this.state = {
+                isVisible: false
+            };
+        }
+        ModalView.prototype.show = function (callback) {
+            var _this = this;
+            this.setState({
+                isVisible: true
+            }, function () {
+                if (callback)
+                    callback();
+                if (_this.props.onShown)
+                    _this.props.onShown();
+            });
+        };
+        ModalView.prototype.hide = function () {
+            this.setState({
+                isVisible: false
+            });
+        };
+        ModalView.prototype.toggle = function () {
+            var _this = this;
+            this.setState({
+                isVisible: !this.state.isVisible
+            }, function () {
+                if (_this.state.isVisible && _this.props.onShown) {
+                    _this.props.onShown();
+                }
+            });
+        };
+        ModalView.prototype.render = function () {
+            var backdropStyle = {
+                display: this.state.isVisible ? 'block' : 'none',
+                position: 'fixed',
+                top: '50px',
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 2,
+                backgroundColor: 'rgba(0,0,0,0.5)'
+            };
+            var innerStyle = {
+                borderRadius: '5px',
+                backgroundColor: '#FFFFFF',
+                color: '#000000',
+                minWidth: '400px',
+                maxWidth: '600px',
+                width: '80%',
+                margin: '20px auto',
+                padding: '40px',
+                zIndex: 11
+            };
+            return (React.createElement("div", {"style": backdropStyle}, React.createElement("div", {"style": innerStyle}, this.props.children)));
+        };
+        return ModalView;
+    })(React.Component);
+    exports.ModalView = ModalView;
 });
 //# sourceMappingURL=BaseViews.js.map

@@ -1,6 +1,10 @@
 /// <reference path="./typings/tsd.d.ts" />
 
+import Logger = require('./Logger');
+
 "use strict";
+
+var Log = Logger.Log;
 
 //
 // export class Utils {
@@ -103,25 +107,31 @@ export class SyncNode implements ISyncNode {
     merge(update: any) {
         console.log('merge: ', update);
         if (typeof update !== 'object') {
-            console.log('WARNING: passed a non-object to merge.');
+            var message = 'WARNING: passed a non-object to merge.';
+            console.log(message);
+            Log.error('SyncNode', message);
             return;
         }
 
         if (this.lastModified > update.lastModified) {
-            console.log('****WARNING*****: local version is NEWER than server version.', this.lastModified, update.lastModified);
+          var message = '****WARNING*****: local version is NEWER than server version.' + this.lastModified + ' ' + update.lastModified;
+          console.log(message);
+          Log.error('SyncNode', message);
         }
+
+        var current: ISyncNode = this;
 
         Object.keys(update).forEach(key => {
             if (key === 'lastModified') {
-                delete this.lastModified;
-                SyncNode.addImmutableButConfigurable(this, 'lastModified', update['lastModified']);
+                delete current.lastModified;
+                SyncNode.addImmutableButConfigurable(current, 'lastModified', update['lastModified']);
             }
             else if (key === '__remove') {
-                this.remove(update[key]);
+                current.remove(update[key]);
             } else {
-                var nextNode = this[key];
+                var nextNode = current[key];
                 if (!nextNode || typeof update[key] !== 'object') {
-                    this.set(key, update[key]);
+                    current = current.set(key, update[key]).parentImmutable;
                 } else {
                     nextNode.merge(update[key]);
                 }
@@ -171,7 +181,7 @@ export class SyncNode implements ISyncNode {
     static createSetter(target: SyncNode): (propName: string, value: any) => ISetResult {
         var set = (propName: string, value: any): ISetResult => {
             if (target[propName] !== value) {
-                console.log('Setting propName: ', propName);
+                //console.log('Setting propName: ', propName);
                 var replaceWithMe = new SyncNode(target, new Date().toISOString(), propName);
 
                 if (typeof value === 'object') {

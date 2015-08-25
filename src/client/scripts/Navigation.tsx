@@ -34,7 +34,7 @@ export class NavigationBase extends React.Component<NavigatorProps, NavigationSt
 export class NavigationView extends NavigationBase {
     render() {
         var style = {
-            zIndex: this.state.isSelected ? 1 : 0,
+            zIndex: this.state.isSelected ? 0 : -1,
             opacity: this.state.isSelected ? 1 : 0
         };
 

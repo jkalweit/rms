@@ -36,6 +36,12 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
             var socketHost = 'http://' + location.host + path;
             console.log('Connecting to namespace: \'' + socketHost + '\'');
             this.server = io(socketHost);
+            this.server.on('connect', function () {
+                Log.log(_this.path, 'Connected');
+                console.log('*************CONNECTED');
+                _this.status = 'Connected';
+                _this.updateStatus(_this.status);
+            });
             this.server.on('disconnect', function () {
                 Log.log(_this.path, 'Disconnected');
                 console.log('*************DISCONNECTED');
@@ -55,14 +61,12 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
             });
             this.server.on('update', function (merge) {
                 Log.debug(_this.path, 'received update: ' + JSON.stringify(merge));
-                console.log('*************handle update: ', merge);
                 _this.updatesDisabled = true;
                 _this.syncNode['local'].merge(merge);
                 _this.updatesDisabled = false;
             });
             this.server.on('updateResponse', function (response) {
                 Log.debug(_this.path, 'received response: ' + JSON.stringify(response));
-                console.log('*************handle response: ', response);
                 _this.clearRequest(response.requestGuid);
             });
             this.server.on('latest', function (latest) {

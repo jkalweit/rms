@@ -1,6 +1,7 @@
 /// <reference path="./typings/tsd.d.ts" />
-"use strict";
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", './Logger'], function (require, exports, Logger) {
+    "use strict";
+    var Log = Logger.Log;
     var idCounterForDebugging = 0;
     var SyncNode = (function () {
         function SyncNode(obj, lastModified, excludeProp) {
@@ -30,27 +31,31 @@ define(["require", "exports"], function (require, exports) {
             SyncNode.addNE(this, 'remove', SyncNode.createRemover(this));
         }
         SyncNode.prototype.merge = function (update) {
-            var _this = this;
             console.log('merge: ', update);
             if (typeof update !== 'object') {
-                console.log('WARNING: passed a non-object to merge.');
+                var message = 'WARNING: passed a non-object to merge.';
+                console.log(message);
+                Log.error('SyncNode', message);
                 return;
             }
             if (this.lastModified > update.lastModified) {
-                console.log('****WARNING*****: local version is NEWER than server version.', this.lastModified, update.lastModified);
+                var message = '****WARNING*****: local version is NEWER than server version.' + this.lastModified + ' ' + update.lastModified;
+                console.log(message);
+                Log.error('SyncNode', message);
             }
+            var current = this;
             Object.keys(update).forEach(function (key) {
                 if (key === 'lastModified') {
-                    delete _this.lastModified;
-                    SyncNode.addImmutableButConfigurable(_this, 'lastModified', update['lastModified']);
+                    delete current.lastModified;
+                    SyncNode.addImmutableButConfigurable(current, 'lastModified', update['lastModified']);
                 }
                 else if (key === '__remove') {
-                    _this.remove(update[key]);
+                    current.remove(update[key]);
                 }
                 else {
-                    var nextNode = _this[key];
+                    var nextNode = current[key];
                     if (!nextNode || typeof update[key] !== 'object') {
-                        _this.set(key, update[key]);
+                        current = current.set(key, update[key]).parentImmutable;
                     }
                     else {
                         nextNode.merge(update[key]);
@@ -74,7 +79,6 @@ define(["require", "exports"], function (require, exports) {
         SyncNode.createSetter = function (target) {
             var set = function (propName, value) {
                 if (target[propName] !== value) {
-                    console.log('Setting propName: ', propName);
                     var replaceWithMe = new SyncNode(target, new Date().toISOString(), propName);
                     if (typeof value === 'object') {
                         var className = value.constructor.toString().match(/\w+/g)[1];

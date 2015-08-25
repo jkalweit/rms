@@ -66,12 +66,18 @@ export class SyncNodeSocket<T> {
         console.log('Connecting to namespace: \'' + socketHost + '\'');
         this.server = io(socketHost);
 
+        this.server.on('connect', () => {
+            Log.log(this.path, 'Connected');
+            console.log('*************CONNECTED');
+            this.status = 'Connected';
+            this.updateStatus(this.status);
+        });
+
         this.server.on('disconnect', () => {
             Log.log(this.path, 'Disconnected');
             console.log('*************DISCONNECTED');
             this.status = 'Disconnected';
             this.updateStatus(this.status);
-            //this.updateStatus('Received update - last modified: ' + mergeObj.lastModified);
         });
 
         this.server.on('reconnect', (number: Number) => {
@@ -85,41 +91,19 @@ export class SyncNodeSocket<T> {
         this.server.on('reconnect_failed', (number: Number) => {
             Log.error(this.path, 'Reconnection Failed. Number of tries: ' + number);
             console.log('*************************Reconnection failed.');
-            //this.status = 'Connected';
-            //this.updateStatus(this.status);
-            //this.updateStatus('Received update - last modified: ' + mergeObj.lastModified);
         });
-
-        // function mergeByLastModified(node: Sync.SyncNode, merge: any) {
-        //   console.log('Doing merge: ', merge);
-        //   if (typeof merge !== 'object') return merge;
-        //   Object.keys(merge).forEach(key => {
-        //       if(node['lastModified'] < merge['lastModified']) {
-        //         if (key === '__remove') {
-        //             node.remove(merge[key] as string);
-        //         } else {
-        //             var nextNode = Node[key] || new Sync.SyncNode();
-        //             console.log('Doing merge here obj: ', nextObj);
-        //             console.log('Doing merge here     merge: ', merge[key]);
-        //             nextNode.set(mergeByLastModified(nextObj, merge[key]);
-        //         }
-        //       }
-        //   });
-        //   return node;
-        // }
 
         this.server.on('update', (merge: any) => {
             Log.debug(this.path, 'received update: ' + JSON.stringify(merge));
-            console.log('*************handle update: ', merge);
+            //console.log('*************handle update: ', merge);
             this.updatesDisabled = true;
             this.syncNode['local'].merge(merge);
             this.updatesDisabled = false;
-            //this.updateStatus('Received update - last modified: ' + mergeObj.lastModified);
         });
 
         this.server.on('updateResponse', (response: Response) => {
             Log.debug(this.path, 'received response: ' + JSON.stringify(response));
-            console.log('*************handle response: ', response);
+            //console.log('*************handle response: ', response);
             this.clearRequest(response.requestGuid);
         });
 

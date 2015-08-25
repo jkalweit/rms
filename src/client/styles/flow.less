@@ -1,0 +1,37 @@
+// main: site.less
+
+@import "colors";
+
+.flow-diagram-edit {
+  .noselect;
+  .h {
+    width: 100%;
+    color: #FFFFFF;
+    margin: 0;
+    background-color: @mdc-purple-700;
+    padding: 10px;
+    border-bottom: 1px solid @mdc-black-lighter;
+  }
+
+  .generate-h(5);
+  .generate-h(@n, @i: 1) when (@i =< @n) {
+    h@{i} {
+      .h;
+    }
+    .generate-h(@n, (@i + 1));
+  }
+
+  .flow-diagram-item {
+    position: absolute;
+    background-color: @mdc-purple-200;
+    border: 1px solid @mdc-black-lighter;
+    border-radius: 5px;
+    text-align: center;
+    transition: all 50ms;
+
+    &.dragging {
+      z-index: 1;
+      box-shadow: 5px 5px 5px #777777;
+    }
+  }
+}

@@ -34,7 +34,7 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
         }
         NavigationView.prototype.render = function () {
             var style = {
-                zIndex: this.state.isSelected ? 1 : 0,
+                zIndex: this.state.isSelected ? 0 : -1,
                 opacity: this.state.isSelected ? 1 : 0
             };
             return (React.createElement("div", {"className": "navigation-view", "style": style}, this.props.children));

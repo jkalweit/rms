@@ -13,27 +13,44 @@ var server = http.createServer(app);
 
 var io = socketio(server);
 
+
 var defaultRec = {
     lastModified: new Date().toISOString(),
     name: 'New Rec',
     tickets: {
-        '0': { key: '0', name: 'Justin2' }
+        '0': { key: '0', name: 'Justin2', items: {} }
     },
     menu: {
-      categories: {
-        '0': {
-          key: '0',
-          name: 'Dinner Entrees',
-          items: {
-            '0': { key: '0', name: '14oz Ribeye', price: '20' }
-          }
+        categories: {
+            '0': {
+                key: '0',
+                name: 'Dinner Entrees',
+                items: {
+                    '0': { key: '0', name: '14oz Ribeye', price: '20' }
+                }
+            }
         }
-      }
     }
 };
 
 
 var ReconciliationServer = new Sync.SyncNodeServer('reconciliation', io, defaultRec);
+
+
+
+var defaultDiagrams = {
+    lastModified: new Date().toISOString(),
+    diagrams: {
+        '1': {
+            key: '1',
+            lastModified: new Date().toISOString(),
+            name: 'New Flow 1',
+            items: {}
+        }
+    }
+};
+
+var FlowDiagramsServer = new Sync.SyncNodeServer('flowdiagrams', io, defaultDiagrams);
 
 
 
