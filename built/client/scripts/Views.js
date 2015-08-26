@@ -24,6 +24,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
             var recSync = this.startReconciliationConnection();
             var flowSync = this.startFlowDiagramsConnection();
             window.addEventListener('hashchange', function () {
+                console.log('hashchange!', location.hash);
                 _this.setState({ nav: _this.parseHash() });
             });
             this.state = {
@@ -105,7 +106,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
             var view;
             var hash = this.state.nav.path[0];
             if (hash == '#diagrams') {
-                view = (React.createElement(Flow.FlowDiagrams, {"diagrams": this.state.diagrams}));
+                view = (React.createElement(Flow.FlowDiagrams, {"diagrams": this.state.diagrams, "path": this.state.nav.path}));
             }
             else if (hash == "#reconciliation") {
                 view = (React.createElement(Rec.ReconciliationView, {"reconciliation": this.state.reconciliation}));

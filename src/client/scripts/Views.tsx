@@ -47,6 +47,7 @@ export class MainView extends React.Component<{}, MainViewState> {
         //console.log('sync.get: ', sync.get());
 
         window.addEventListener('hashchange', () => {
+          console.log('hashchange!', location.hash);
           this.setState({ nav: this.parseHash() });
         });
 
@@ -142,7 +143,7 @@ export class MainView extends React.Component<{}, MainViewState> {
 
         if(hash == '#diagrams') {
             view = (
-              <Flow.FlowDiagrams diagrams={this.state.diagrams}></Flow.FlowDiagrams>
+              <Flow.FlowDiagrams diagrams={this.state.diagrams} path={this.state.nav.path}></Flow.FlowDiagrams>
             );
         } else if(hash == "#reconciliation") {
            view = (

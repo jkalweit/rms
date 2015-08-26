@@ -9,22 +9,27 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
         __extends(FlowDiagrams, _super);
         function FlowDiagrams(props) {
             _super.call(this, props);
+            console.log(props);
             this.state = {
-                selectedDiagram: null
+                selectedDiagram: this.getSelectedDiagram(props)
             };
         }
         FlowDiagrams.prototype.componentWillReceiveProps = function (nextProps) {
-            var selectedDiagram = this.state.selectedDiagram;
-            if (selectedDiagram)
-                selectedDiagram = nextProps.diagrams.diagrams[selectedDiagram.key];
-            this.setState({ selectedDiagram: selectedDiagram });
+            this.setState({ selectedDiagram: this.getSelectedDiagram(nextProps) });
+        };
+        FlowDiagrams.prototype.getSelectedDiagram = function (props) {
+            var key = props.path[1];
+            return key ? props.diagrams.diagrams[key] : null;
+        };
+        FlowDiagrams.prototype.gotoDiagram = function (key) {
+            location.hash = '#diagrams/' + key;
         };
         FlowDiagrams.prototype.render = function () {
             var _this = this;
             var classNames = this.preRender(['flow-diagram-edit']);
             var diagramsArray = Utils.toArray(this.props.diagrams.diagrams);
             var nodes = diagramsArray.map(function (diagram) {
-                return (React.createElement("li", {"key": diagram.key, "onClick": function () { _this.setState({ selectedDiagram: diagram }); }}, diagram.name));
+                return (React.createElement("li", {"key": diagram.key, "onClick": function () { _this.gotoDiagram(diagram.key); }}, diagram.name));
             });
             return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("div", null, React.createElement("ul", null, nodes)), this.state.selectedDiagram ? React.createElement(FlowDiagramEdit, {"diagram": this.state.selectedDiagram}) : null));
         };
@@ -78,7 +83,6 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
         }
         FlowDiagramItem.prototype.componentWillReceiveProps = function (nextProps) {
             if (!this.state.dragging && this.shouldComponentUpdate(nextProps, null)) {
-                console.log('nextProps', nextProps.item);
                 this.setState({
                     x: nextProps.item.position.x,
                     y: nextProps.item.position.y
@@ -89,7 +93,6 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
             var _this = this;
             this.dragnodestart = [this.state.x, this.state.y];
             this.dragstart = [e['clientX'], e['clientY']];
-            console.log('drag', this.props.item.__syncNodeId, this.props.item);
             this.moveListener = this.move.bind(this);
             this.dropListener = this.drop.bind(this);
             this.setState({ dragging: true }, function () {
@@ -109,7 +112,6 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
             }
         };
         FlowDiagramItem.prototype.drop = function (e) {
-            console.log('drop', this.props.item.__syncNodeId, this.props.item);
             document.removeEventListener('mousemove', this.moveListener);
             document.removeEventListener('mouseup', this.dropListener);
             this.props.item.set('position', { x: this.state.x, y: this.state.y });
@@ -136,7 +138,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
                 height: item.height + 'px',
                 lineHeight: item.height + 'px'
             };
-            return (React.createElement("div", {"ref": "main", "key": item.key, "className": classNames.join(' '), "style": style, "onMouseDown": this.drag.bind(this)}, item.__syncNodeId, item.text));
+            return (React.createElement("div", {"ref": "main", "key": item.key, "className": classNames.join(' '), "style": style, "onMouseDown": this.drag.bind(this)}, item.text));
         };
         return FlowDiagramItem;
     })(Base.SyncView);

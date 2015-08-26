@@ -13,6 +13,7 @@ import Models = require('./Models');
 
 export interface FlowDiagramsProps {
     diagrams?: Models.FlowDiagrams;
+    path?: string[];
 }
 export interface FlowDiagramsState extends Base.SyncViewState {
     selectedDiagram?: Models.FlowDiagram;
@@ -20,22 +21,27 @@ export interface FlowDiagramsState extends Base.SyncViewState {
 export class FlowDiagrams extends Base.SyncView<FlowDiagramsProps, FlowDiagramsState> {
     constructor(props: FlowDiagramsProps) {
         super(props);
-
+        console.log(props);
         this.state = {
-            selectedDiagram: null
+            selectedDiagram: this.getSelectedDiagram(props)
         }
     }
     componentWillReceiveProps(nextProps: FlowDiagramsProps) {
-      var selectedDiagram = this.state.selectedDiagram;
-      if (selectedDiagram) selectedDiagram = nextProps.diagrams.diagrams[selectedDiagram.key];
-      this.setState({ selectedDiagram: selectedDiagram });
+      this.setState({ selectedDiagram: this.getSelectedDiagram(nextProps) });
+    }
+    getSelectedDiagram(props: FlowDiagramsProps): Models.FlowDiagram {
+      var key = props.path[1];
+      return key ? props.diagrams.diagrams[key] : null;
+    }
+    gotoDiagram(key: string) {
+      location.hash = '#diagrams/' + key;
     }
     render() {
         var classNames = this.preRender(['flow-diagram-edit']);
         var diagramsArray = Utils.toArray(this.props.diagrams.diagrams);
         var nodes = diagramsArray.map((diagram: Models.FlowDiagram) => {
             return (
-                <li key={diagram.key} onClick={() => { this.setState({ selectedDiagram: diagram }); } }>{ diagram.name }</li>
+                <li key={diagram.key} onClick={() => { this.gotoDiagram(diagram.key); } }>{ diagram.name }</li>
             );
         });
         return (
@@ -46,7 +52,7 @@ export class FlowDiagrams extends Base.SyncView<FlowDiagramsProps, FlowDiagramsS
               </ul>
             </div>
             {
-            this.state.selectedDiagram ? <FlowDiagramEdit diagram={this.state.selectedDiagram}></FlowDiagramEdit> : null
+              this.state.selectedDiagram ? <FlowDiagramEdit diagram={this.state.selectedDiagram}></FlowDiagramEdit> : null
             }
             </div>
         );
@@ -131,7 +137,7 @@ export class FlowDiagramItem extends Base.SyncView<FlowDiagramItemProps, FlowDia
     }
     componentWillReceiveProps(nextProps: FlowDiagramItemProps) {
         if (!this.state.dragging && this.shouldComponentUpdate(nextProps, null)) {
-            console.log('nextProps', nextProps.item);
+            //console.log('nextProps', nextProps.item);
             this.setState({
                 x: nextProps.item.position.x,
                 y: nextProps.item.position.y
@@ -141,7 +147,7 @@ export class FlowDiagramItem extends Base.SyncView<FlowDiagramItemProps, FlowDia
     drag(e: React.SyntheticEvent) {
         this.dragnodestart = [this.state.x, this.state.y];
         this.dragstart = [e['clientX'], e['clientY']];
-        console.log('drag', this.props.item.__syncNodeId, this.props.item);
+        //console.log('drag', this.props.item.__syncNodeId, this.props.item);
         this.moveListener = this.move.bind(this);
         this.dropListener = this.drop.bind(this);
         this.setState({ dragging: true }, () => {
@@ -161,7 +167,7 @@ export class FlowDiagramItem extends Base.SyncView<FlowDiagramItemProps, FlowDia
         }
     }
     drop(e: React.SyntheticEvent) {
-        console.log('drop', this.props.item.__syncNodeId, this.props.item);
+        //console.log('drop', this.props.item.__syncNodeId, this.props.item);
         document.removeEventListener('mousemove', this.moveListener);
         document.removeEventListener('mouseup', this.dropListener);
         //console.log('here', this.props.item.__syncNodeId, this.props.item);
@@ -196,7 +202,7 @@ export class FlowDiagramItem extends Base.SyncView<FlowDiagramItemProps, FlowDia
         };
         return (
             <div ref="main" key={item.key} className={classNames.join(' ')} style={style}
-            onMouseDown={this.drag.bind(this) }>{item.__syncNodeId} {item.text}</div>
+            onMouseDown={this.drag.bind(this) }>{item.text}</div>
         );
     }
 }
