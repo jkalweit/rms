@@ -181,6 +181,6 @@ export class SyncNodeSocket<T> {
     }
     stop() {
       delete this.syncNode.onUpdated;
-      this.server.close();      
+      this.server.close();
     }
 }

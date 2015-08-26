@@ -21,26 +21,16 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
         function MainView(props) {
             var _this = this;
             _super.call(this, props);
-            var defaultRec;
-            defaultRec = {
-                name: 'Test Rec',
-                tickets: { '0': { key: '0', name: 'Justin2' } },
-                menu: { categories: { items: {} } }
-            };
-            var sync = new Sync.SyncNodeSocket('/reconciliation', defaultRec);
-            sync.onStatusChanged = function (path, status) {
-                _this.setState({ syncSocketStatus: status });
-            };
-            sync.onUpdated(function (updated) {
-                _this.setState({ reconciliation: updated });
-            });
+            var recSync = this.startReconciliationConnection();
+            var flowSync = this.startFlowDiagramsConnection();
             window.addEventListener('hashchange', function () {
                 _this.setState({ nav: _this.parseHash() });
             });
             this.state = {
-                reconciliation: sync.get(),
+                reconciliation: recSync.get(),
+                diagrams: flowSync.get(),
                 isNavOpen: false,
-                syncSocketStatus: sync.status,
+                syncSocketStatus: recSync.status,
                 nav: this.parseHash()
             };
         }
@@ -63,11 +53,50 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
                 });
             }
             var state = { path: path, query: query };
-            console.log('state', state);
             return state;
         };
         MainView.prototype.closeNav = function () {
             this.setState({ isNavOpen: false });
+        };
+        MainView.prototype.startReconciliationConnection = function () {
+            var _this = this;
+            var defaultRec;
+            defaultRec = {
+                name: 'Test Rec',
+                tickets: { '0': { key: '0', name: 'Justin2' } },
+                menu: { categories: { items: {} } }
+            };
+            var sync = new Sync.SyncNodeSocket('/reconciliation', defaultRec);
+            sync.onStatusChanged = function (path, status) {
+                _this.setState({ syncSocketStatus: status });
+            };
+            sync.onUpdated(function (updated) {
+                console.log('updated Rec!', updated);
+                _this.setState({ reconciliation: updated });
+            });
+            return sync;
+        };
+        MainView.prototype.startFlowDiagramsConnection = function () {
+            var _this = this;
+            var defaultDiagrams;
+            defaultDiagrams = {
+                diagrams: {
+                    '0': {
+                        key: '0',
+                        name: 'New Diagram',
+                        items: {}
+                    }
+                }
+            };
+            var sync = new Sync.SyncNodeSocket('/flowdiagrams', defaultDiagrams);
+            sync.onStatusChanged = function (path, status) {
+                _this.setState({ syncSocketStatus: status });
+            };
+            sync.onUpdated(function (updated) {
+                console.log('updated Diagrams!', updated);
+                _this.setState({ diagrams: updated });
+            });
+            return sync;
         };
         MainView.prototype.render = function () {
             var _this = this;
@@ -76,7 +105,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
             var view;
             var hash = this.state.nav.path[0];
             if (hash == '#diagrams') {
-                view = (React.createElement(Flow.FlowDiagrams, null));
+                view = (React.createElement(Flow.FlowDiagrams, {"diagrams": this.state.diagrams}));
             }
             else if (hash == "#reconciliation") {
                 view = (React.createElement(Rec.ReconciliationView, {"reconciliation": this.state.reconciliation}));

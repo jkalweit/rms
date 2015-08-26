@@ -120,19 +120,19 @@ export class SyncNode implements ISyncNode {
           Log.error('SyncNode', message);
         }
 
-        //var current: ISyncNode = this;
+        var current: ISyncNode = this;
 
         Object.keys(update).forEach(key => {
             if (key === 'lastModified') {
-                delete this.lastModified;
-                SyncNode.addImmutableButConfigurable(this, 'lastModified', update['lastModified']);
+                delete current.lastModified;
+                SyncNode.addImmutableButConfigurable(current, 'lastModified', update['lastModified']);
             }
             else if (key === '__remove') {
-                this.remove(update[key]);
+                current.remove(update[key]);
             } else {
                 var nextNode = this[key];
                 if (!nextNode || typeof update[key] !== 'object') {
-                    this.set(key, update[key]);
+                    current = current.set(key, update[key]).parentImmutable;
                 } else {
                     nextNode.merge(update[key]);
                 }

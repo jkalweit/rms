@@ -44,18 +44,19 @@ define(["require", "exports", './Logger'], function (require, exports, Logger) {
                 console.log(message);
                 Log.error('SyncNode', message);
             }
+            var current = this;
             Object.keys(update).forEach(function (key) {
                 if (key === 'lastModified') {
-                    delete _this.lastModified;
-                    SyncNode.addImmutableButConfigurable(_this, 'lastModified', update['lastModified']);
+                    delete current.lastModified;
+                    SyncNode.addImmutableButConfigurable(current, 'lastModified', update['lastModified']);
                 }
                 else if (key === '__remove') {
-                    _this.remove(update[key]);
+                    current.remove(update[key]);
                 }
                 else {
                     var nextNode = _this[key];
                     if (!nextNode || typeof update[key] !== 'object') {
-                        _this.set(key, update[key]);
+                        current = current.set(key, update[key]).parentImmutable;
                     }
                     else {
                         nextNode.merge(update[key]);

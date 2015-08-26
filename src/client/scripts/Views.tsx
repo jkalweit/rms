@@ -32,6 +32,7 @@ export interface NavigationInfo {
 }
 export interface MainViewState {
     reconciliation?: Models.Reconciliation;
+    diagrams?: Models.FlowDiagrams;
     isNavOpen?: boolean;
     syncSocketStatus?: string;
 
@@ -41,24 +42,8 @@ export class MainView extends React.Component<{}, MainViewState> {
     constructor(props: {}) {
         super(props);
 
-        var defaultRec: Models.Reconciliation;
-        defaultRec = {
-          name: 'Test Rec',
-          tickets: { '0': { key: '0', name: 'Justin2' }},
-          menu: { categories: { items: {} } }
-        };
-
-        var sync = new Sync.SyncNodeSocket<Models.Reconciliation>('/reconciliation', defaultRec);
-        sync.onStatusChanged = (path: string, status: string) => {
-          this.setState({ syncSocketStatus: status });
-        };
-
-        sync.onUpdated((updated: Models.Reconciliation) => {
-            //console.log('     setting state: ', updated);
-            this.setState({ reconciliation: updated });
-        });
-
-
+        var recSync = this.startReconciliationConnection();
+        var flowSync = this.startFlowDiagramsConnection();
         //console.log('sync.get: ', sync.get());
 
         window.addEventListener('hashchange', () => {
@@ -66,9 +51,10 @@ export class MainView extends React.Component<{}, MainViewState> {
         });
 
         this.state = {
-            reconciliation: sync.get(),
+            reconciliation: recSync.get(),
+            diagrams: flowSync.get(),
             isNavOpen: false,
-            syncSocketStatus: sync.status,
+            syncSocketStatus: recSync.status,
             nav: this.parseHash()
         };
     }
@@ -93,11 +79,55 @@ export class MainView extends React.Component<{}, MainViewState> {
           });
         }
         var state = { path: path, query: query };
-        console.log('state', state);
+        //console.log('state', state);
         return state;
     }
     closeNav() {
         this.setState({ isNavOpen: false });
+    }
+    startReconciliationConnection(): Sync.SyncNodeSocket<Models.Reconciliation> {
+      var defaultRec: Models.Reconciliation;
+      defaultRec = {
+        name: 'Test Rec',
+        tickets: { '0': { key: '0', name: 'Justin2' }},
+        menu: { categories: { items: {} } }
+      };
+
+      var sync = new Sync.SyncNodeSocket<Models.Reconciliation>('/reconciliation', defaultRec);
+      sync.onStatusChanged = (path: string, status: string) => {
+        this.setState({ syncSocketStatus: status });
+      };
+
+      sync.onUpdated((updated: Models.Reconciliation) => {
+          console.log('updated Rec!', updated);
+          this.setState({ reconciliation: updated });
+      });
+
+      return sync;
+    }
+    startFlowDiagramsConnection(): Sync.SyncNodeSocket<Models.FlowDiagrams> {
+      var defaultDiagrams: Models.FlowDiagrams;
+      defaultDiagrams = {
+          diagrams: {
+              '0': {
+                  key: '0',
+                  name: 'New Diagram',
+                  items: {
+                  }
+              }
+          }
+      };
+
+      var sync = new Sync.SyncNodeSocket<Models.FlowDiagrams>('/flowdiagrams', defaultDiagrams);
+      sync.onStatusChanged = (path: string, status: string) => {
+          this.setState({ syncSocketStatus: status });
+      };
+
+      sync.onUpdated((updated: Models.FlowDiagrams) => {
+          console.log('updated Diagrams!', updated);
+          this.setState({ diagrams: updated });
+      });
+      return sync;
     }
     render() {
         //var rec = this.state.reconciliation;
@@ -112,7 +142,7 @@ export class MainView extends React.Component<{}, MainViewState> {
 
         if(hash == '#diagrams') {
             view = (
-              <Flow.FlowDiagrams></Flow.FlowDiagrams>
+              <Flow.FlowDiagrams diagrams={this.state.diagrams}></Flow.FlowDiagrams>
             );
         } else if(hash == "#reconciliation") {
            view = (

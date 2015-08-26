@@ -12,55 +12,27 @@ import Models = require('./Models');
 
 
 export interface FlowDiagramsProps {
+    diagrams?: Models.FlowDiagrams;
 }
 export interface FlowDiagramsState extends Base.SyncViewState {
-    syncSocketStatus?: string;
-    diagrams?: Models.FlowDiagrams;
     selectedDiagram?: Models.FlowDiagram;
 }
 export class FlowDiagrams extends Base.SyncView<FlowDiagramsProps, FlowDiagramsState> {
-    sync: SyncSocket.SyncNodeSocket<Models.FlowDiagrams>;
     constructor(props: FlowDiagramsProps) {
         super(props);
-        var defaultDiagrams: Models.FlowDiagrams;
-        defaultDiagrams = {
-            diagrams: {
-                '0': {
-                    key: '0',
-                    name: 'New Diagram',
-                    items: {
-                    }
-                }
-            }
-        };
-
-        this.sync = new SyncSocket.SyncNodeSocket<Models.FlowDiagrams>('/flowdiagrams', defaultDiagrams);
-        this.sync.onStatusChanged = (path: string, status: string) => {
-            this.setState({ syncSocketStatus: status });
-        };
-
-        this.sync.onUpdated((updated: Models.FlowDiagrams) => {
-            console.log('updated!', updated);
-            var selectedDiagram = this.state.selectedDiagram;
-            if (selectedDiagram) selectedDiagram = updated.diagrams[selectedDiagram.key];
-            this.setState({ diagrams: updated, selectedDiagram: selectedDiagram });
-        });
 
         this.state = {
-            diagrams: defaultDiagrams,
-            selectedDiagram: null,
-            syncSocketStatus: 'Initializing...'
+            selectedDiagram: null
         }
     }
-    componentWillUnmount() {
-      console.log(this.name, 'unmount');
-      this.sync.stop();
-      delete this.sync.onUpdated;
-      delete this.sync;
+    componentWillReceiveProps(nextProps: FlowDiagramsProps) {
+      var selectedDiagram = this.state.selectedDiagram;
+      if (selectedDiagram) selectedDiagram = nextProps.diagrams.diagrams[selectedDiagram.key];
+      this.setState({ selectedDiagram: selectedDiagram });
     }
     render() {
         var classNames = this.preRender(['flow-diagram-edit']);
-        var diagramsArray = Utils.toArray(this.state.diagrams.diagrams);
+        var diagramsArray = Utils.toArray(this.props.diagrams.diagrams);
         var nodes = diagramsArray.map((diagram: Models.FlowDiagram) => {
             return (
                 <li key={diagram.key} onClick={() => { this.setState({ selectedDiagram: diagram }); } }>{ diagram.name }</li>

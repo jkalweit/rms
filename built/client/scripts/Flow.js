@@ -4,49 +4,25 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './SyncNodeSocket', './BaseViews', './Utils'], function (require, exports, React, SyncSocket, Base, Utils) {
+define(["require", "exports", 'react/addons', './BaseViews', './Utils'], function (require, exports, React, Base, Utils) {
     var FlowDiagrams = (function (_super) {
         __extends(FlowDiagrams, _super);
         function FlowDiagrams(props) {
-            var _this = this;
             _super.call(this, props);
-            var defaultDiagrams;
-            defaultDiagrams = {
-                diagrams: {
-                    '0': {
-                        key: '0',
-                        name: 'New Diagram',
-                        items: {}
-                    }
-                }
-            };
-            this.sync = new SyncSocket.SyncNodeSocket('/flowdiagrams', defaultDiagrams);
-            this.sync.onStatusChanged = function (path, status) {
-                _this.setState({ syncSocketStatus: status });
-            };
-            this.sync.onUpdated(function (updated) {
-                console.log('updated!', updated);
-                var selectedDiagram = _this.state.selectedDiagram;
-                if (selectedDiagram)
-                    selectedDiagram = updated.diagrams[selectedDiagram.key];
-                _this.setState({ diagrams: updated, selectedDiagram: selectedDiagram });
-            });
             this.state = {
-                diagrams: defaultDiagrams,
-                selectedDiagram: null,
-                syncSocketStatus: 'Initializing...'
+                selectedDiagram: null
             };
         }
-        FlowDiagrams.prototype.componentWillUnmount = function () {
-            console.log(this.name, 'unmount');
-            this.sync.stop();
-            delete this.sync.onUpdated;
-            delete this.sync;
+        FlowDiagrams.prototype.componentWillReceiveProps = function (nextProps) {
+            var selectedDiagram = this.state.selectedDiagram;
+            if (selectedDiagram)
+                selectedDiagram = nextProps.diagrams.diagrams[selectedDiagram.key];
+            this.setState({ selectedDiagram: selectedDiagram });
         };
         FlowDiagrams.prototype.render = function () {
             var _this = this;
             var classNames = this.preRender(['flow-diagram-edit']);
-            var diagramsArray = Utils.toArray(this.state.diagrams.diagrams);
+            var diagramsArray = Utils.toArray(this.props.diagrams.diagrams);
             var nodes = diagramsArray.map(function (diagram) {
                 return (React.createElement("li", {"key": diagram.key, "onClick": function () { _this.setState({ selectedDiagram: diagram }); }}, diagram.name));
             });
