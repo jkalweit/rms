@@ -32,7 +32,6 @@ define(["require", "exports", './Logger'], function (require, exports, Logger) {
         }
         SyncNode.prototype.merge = function (update) {
             var _this = this;
-            console.log('merge: ', update);
             if (typeof update !== 'object') {
                 var message = 'WARNING: passed a non-object to merge.';
                 console.log(message);

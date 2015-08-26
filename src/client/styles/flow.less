@@ -21,13 +21,32 @@
     .generate-h(@n, (@i + 1));
   }
 
+  .drawer-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 300px;
+    background-color: #FFFFFF;
+    border-left: 1px solid @mdc-black-lighter;
+    z-index: 1;
+  }
+
   .flow-diagram-item {
     position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     background-color: @mdc-blue-100;
     border: 1px solid @mdc-black-lighter;
     border-radius: 5px;
     text-align: center;
     transition: all 50ms;
+
+    &.selected {
+      z-index: 1;
+      box-shadow: 0px 0px 10px @mdc-yellow-700;
+    }
 
     &.dragging {
       z-index: 1;

@@ -87,39 +87,97 @@ export class FlowDiagramEdit extends Base.SyncView<FlowDiagramEditProps, FlowDia
         } as Models.FlowDiagramItem;
         var result = (this.props.diagram.items as Sync.ISyncNode).set(mutable.key, mutable);
         this.setState({ selectedItem: result.value }, () => {
-            //(this.refs['menuItemEditModal'] as bv.ModalView).show();
+            //console.log('state', result, this.state);
         });
+    }
+    saveItem(item: Models.FlowDiagramItem) {
+        var result = (this.props.diagram.items as Sync.ISyncNode).set(this.state.selectedItem.key, item);
+        this.setState({ selectedItem: result.value });
     }
     render() {
         var classNames = this.preRender(['flow-diagram-edit']);
         var itemsArray = Utils.toArray(this.props.diagram.items);
         var nodes = itemsArray.map((item: Models.FlowDiagramItem) => {
+            var isSelected = this.state.selectedItem && this.state.selectedItem.key === item.key;
             return (
-                <FlowDiagramItem item={item} items={this.props.diagram.items} key={item.key}></FlowDiagramItem>
+                <FlowDiagramItem item={item} key={item.key} isSelected={isSelected} onSelected={(item: Models.FlowDiagramItem) => { console.log('here'); this.setState({ selectedItem: item }); }}></FlowDiagramItem>
             );
         });
         return (
             <div className={classNames.join(' ') }>
-              <button onClick={this.newItem.bind(this) }>New Item</button>
+              <div className="drawer-right">
+                <button onClick={this.newItem.bind(this) }>New Item</button>
+                { this.state.selectedItem ?
+                    <div>
+                      <h3>Item selected: {this.state.selectedItem.__syncNodeId}</h3>
+                      <FlowDiagramItemEdit item={this.state.selectedItem}
+                      onSave={ this.saveItem.bind(this) }
+                      ></FlowDiagramItemEdit>
+                      <button onClick={() => { (this.props.diagram.items as Sync.ISyncNode).remove(this.state.selectedItem.key); this.setState({selectedItem: null}) }}>Delete</button>
+                    </div>
+                    : null }
+              </div>
 
               { nodes }
 
-              <Base.ModalView ref="itemEditModal">
-
-                { this.state.selectedItem ?
-                    <h3>Item selected!</h3>
-                    : null }
-
-              </Base.ModalView>
             </div>
         );
     }
 }
 
+
+
+
+
+export interface FlowDiagramItemEditProps {
+    item: Models.FlowDiagramItem;
+    onSave(item: Models.FlowDiagramItem): void;
+}
+export interface FlowDiagramItemEditState {
+    mutable: Models.FlowDiagramItem;
+}
+export class FlowDiagramItemEdit extends Base.SyncView<FlowDiagramItemEditProps, FlowDiagramItemEditState> {
+    constructor(props: FlowDiagramItemEditProps) {
+        super(props);
+        this.state = {
+          mutable: JSON.parse(JSON.stringify(props.item))
+        };
+    }
+    componentWillReceiveProps(nextProps: FlowDiagramItemEditProps) {
+      console.log('new Props!', nextProps);
+      if(this.shouldComponentUpdate(nextProps, null)) {
+        console.log('setting state');
+        this.setState({ mutable: JSON.parse(JSON.stringify(nextProps.item)) });
+      }
+    }
+    render() {
+        console.log('         Render flow-diagram-item-edit');
+        var classNames = this.preRender(['flow-diagram-item-edit']);
+        var mutable = this.state.mutable;
+        return (
+            <div>
+              <input value={mutable.text} onChange={this.handleChange.bind(this, 'mutable', 'text')} />
+              <input value={mutable.width.toString()} onChange={this.handleChange.bind(this, 'mutable', 'width')} />
+              <input value={mutable.height.toString()} onChange={this.handleChange.bind(this, 'mutable', 'height')} />
+              <button onClick={() => { this.props.onSave(this.state.mutable); }}>Save</button>
+            </div>
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
 export interface FlowDiagramItemProps {
     key: string;
     item: Models.FlowDiagramItem;
-    items: Sync.ISyncNode;
+    isSelected: boolean;
+    onSelected(item: Models.FlowDiagramItem): void;
 }
 export interface FlowDiagramItemState {
     x?: number;
@@ -191,18 +249,18 @@ export class FlowDiagramItem extends Base.SyncView<FlowDiagramItemProps, FlowDia
     render() {
         console.log('         Render flow-diagram-item');
         var classNames = this.preRender(['flow-diagram-item']);
+        if(this.props.isSelected) classNames.push('selected');
         if(this.state.dragging) classNames.push('dragging');
         var item = this.props.item;
         var style = {
             top: this.state.y + 'px',
             left: this.state.x + 'px',
             width: item.width + 'px',
-            height: item.height + 'px',
-            lineHeight: item.height + 'px'
+            height: item.height + 'px'
         };
         return (
             <div ref="main" key={item.key} className={classNames.join(' ')} style={style}
-            onMouseDown={this.drag.bind(this) }>{item.text}</div>
+            onMouseDown={this.drag.bind(this) } onClick={() => { this.props.onSelected(item);}}>{item.text}</div>
         );
     }
 }

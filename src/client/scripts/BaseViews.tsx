@@ -59,12 +59,12 @@ export class SyncView<P, S extends SyncViewState> extends React.Component<P, S> 
       }
     }
     handleChange(mutableProp: string, fieldName: string, event: Event) {
-        var mutable = this.state[mutableProp];
+        var mutable = JSON.parse(JSON.stringify(this.state[mutableProp]));
         if (mutable[fieldName] !== (event.target as HTMLInputElement).value) {
             mutable[fieldName] = (event.target as HTMLInputElement).value;
             var nextState = { isDirty: true };
             nextState[mutableProp] = mutable;
-            console.log('here', nextState);
+            //console.log('here', nextState);
             this.setState(nextState as any as S);
         }
     }

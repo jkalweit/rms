@@ -38,12 +38,11 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
             }
         };
         SyncView.prototype.handleChange = function (mutableProp, fieldName, event) {
-            var mutable = this.state[mutableProp];
+            var mutable = JSON.parse(JSON.stringify(this.state[mutableProp]));
             if (mutable[fieldName] !== event.target.value) {
                 mutable[fieldName] = event.target.value;
                 var nextState = { isDirty: true };
                 nextState[mutableProp] = mutable;
-                console.log('here', nextState);
                 this.setState(nextState);
             }
         };

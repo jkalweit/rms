@@ -100,13 +100,12 @@ export class SyncNode implements ISyncNode {
         delete this.lastModified;
         SyncNode.addImmutableButConfigurable(this, 'lastModified', lastModified);
 
-
         SyncNode.addNE(this, 'set', SyncNode.createSetter(this));
         SyncNode.addNE(this, 'remove', SyncNode.createRemover(this));
     }
 
     merge(update: any) {
-        console.log('merge: ', update);
+        //console.log('merge: ', update);
         if (typeof update !== 'object') {
             var message = 'WARNING: passed a non-object to merge.';
             console.log(message);
