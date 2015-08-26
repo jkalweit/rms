@@ -93,12 +93,14 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
                 this.setState({ mutable: JSON.parse(JSON.stringify(nextProps.item)) });
             }
         };
+        FlowDiagramItemEdit.prototype.save = function () {
+            this.props.onSave(this.state.mutable);
+        };
         FlowDiagramItemEdit.prototype.render = function () {
-            var _this = this;
             console.log('         Render flow-diagram-item-edit');
             var classNames = this.preRender(['flow-diagram-item-edit']);
             var mutable = this.state.mutable;
-            return (React.createElement("div", null, React.createElement("input", {"value": mutable.text, "onChange": this.handleChange.bind(this, 'mutable', 'text')}), React.createElement("input", {"value": mutable.width.toString(), "onChange": this.handleChange.bind(this, 'mutable', 'width')}), React.createElement("input", {"value": mutable.height.toString(), "onChange": this.handleChange.bind(this, 'mutable', 'height')}), React.createElement("button", {"onClick": function () { _this.props.onSave(_this.state.mutable); }}, "Save")));
+            return (React.createElement("div", null, React.createElement("input", {"value": mutable.text, "onChange": this.handleChange.bind(this, 'mutable', 'text'), "onBlur": this.save.bind(this)}), React.createElement("input", {"value": mutable.width.toString(), "onChange": this.handleChange.bind(this, 'mutable', 'width'), "onBlur": this.save.bind(this)}), React.createElement("input", {"value": mutable.height.toString(), "onChange": this.handleChange.bind(this, 'mutable', 'height'), "onBlur": this.save.bind(this)})));
         };
         return FlowDiagramItemEdit;
     })(Base.SyncView);

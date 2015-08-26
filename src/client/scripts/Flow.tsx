@@ -150,16 +150,18 @@ export class FlowDiagramItemEdit extends Base.SyncView<FlowDiagramItemEditProps,
         this.setState({ mutable: JSON.parse(JSON.stringify(nextProps.item)) });
       }
     }
+    save() {
+      this.props.onSave(this.state.mutable);
+    }
     render() {
         console.log('         Render flow-diagram-item-edit');
         var classNames = this.preRender(['flow-diagram-item-edit']);
         var mutable = this.state.mutable;
         return (
             <div>
-              <input value={mutable.text} onChange={this.handleChange.bind(this, 'mutable', 'text')} />
-              <input value={mutable.width.toString()} onChange={this.handleChange.bind(this, 'mutable', 'width')} />
-              <input value={mutable.height.toString()} onChange={this.handleChange.bind(this, 'mutable', 'height')} />
-              <button onClick={() => { this.props.onSave(this.state.mutable); }}>Save</button>
+              <input value={mutable.text} onChange={this.handleChange.bind(this, 'mutable', 'text')} onBlur={ this.save.bind(this) } />
+              <input value={mutable.width.toString()} onChange={this.handleChange.bind(this, 'mutable', 'width')} onBlur={ this.save.bind(this) } />
+              <input value={mutable.height.toString()} onChange={this.handleChange.bind(this, 'mutable', 'height')} onBlur={ this.save.bind(this) } />              
             </div>
         );
     }
