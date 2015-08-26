@@ -57,7 +57,7 @@ var SyncNodeServer = (function () {
                 doMerge(_this.data, merge);
                 _this.persistence.persist(_this.data);
                 socket.emit('updateResponse', new Response(request.requestGuid, null));
-                _this.ioNamespace.emit('update', merge);
+                socket.broadcast.emit('update', merge);
             });
         });
     };

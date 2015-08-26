@@ -18,10 +18,10 @@ define(["require", "exports", './Logger'], function (require, exports, Logger) {
                     var className = prop.constructor.toString().match(/\w+/g)[1];
                     if (className !== 'SyncNode') {
                         prop = new SyncNode(prop, prop.lastModified || lastModified);
-                        SyncNode.addNE(prop, 'onUpdated', SyncNode.createOnUpdated(_this, propName));
                     }
                     else {
                     }
+                    SyncNode.addNE(prop, 'onUpdated', SyncNode.createOnUpdated(_this, propName));
                 }
                 SyncNode.addImmutable(_this, propName, prop);
             });
@@ -31,6 +31,7 @@ define(["require", "exports", './Logger'], function (require, exports, Logger) {
             SyncNode.addNE(this, 'remove', SyncNode.createRemover(this));
         }
         SyncNode.prototype.merge = function (update) {
+            var _this = this;
             console.log('merge: ', update);
             if (typeof update !== 'object') {
                 var message = 'WARNING: passed a non-object to merge.';
@@ -43,19 +44,18 @@ define(["require", "exports", './Logger'], function (require, exports, Logger) {
                 console.log(message);
                 Log.error('SyncNode', message);
             }
-            var current = this;
             Object.keys(update).forEach(function (key) {
                 if (key === 'lastModified') {
-                    delete current.lastModified;
-                    SyncNode.addImmutableButConfigurable(current, 'lastModified', update['lastModified']);
+                    delete _this.lastModified;
+                    SyncNode.addImmutableButConfigurable(_this, 'lastModified', update['lastModified']);
                 }
                 else if (key === '__remove') {
-                    current.remove(update[key]);
+                    _this.remove(update[key]);
                 }
                 else {
-                    var nextNode = current[key];
+                    var nextNode = _this[key];
                     if (!nextNode || typeof update[key] !== 'object') {
-                        current = current.set(key, update[key]).parentImmutable;
+                        _this.set(key, update[key]);
                     }
                     else {
                         nextNode.merge(update[key]);

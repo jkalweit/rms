@@ -20,11 +20,11 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './BaseViews',
                     }
                 }
             };
-            var sync = new SyncSocket.SyncNodeSocket('/flowdiagrams', defaultDiagrams);
-            sync.onStatusChanged = function (path, status) {
+            this.sync = new SyncSocket.SyncNodeSocket('/flowdiagrams', defaultDiagrams);
+            this.sync.onStatusChanged = function (path, status) {
                 _this.setState({ syncSocketStatus: status });
             };
-            sync.onUpdated(function (updated) {
+            this.sync.onUpdated(function (updated) {
                 console.log('updated!', updated);
                 var selectedDiagram = _this.state.selectedDiagram;
                 if (selectedDiagram)
@@ -37,6 +37,12 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './BaseViews',
                 syncSocketStatus: 'Initializing...'
             };
         }
+        FlowDiagrams.prototype.componentWillUnmount = function () {
+            console.log(this.name, 'unmount');
+            this.sync.stop();
+            delete this.sync.onUpdated;
+            delete this.sync;
+        };
         FlowDiagrams.prototype.render = function () {
             var _this = this;
             var classNames = this.preRender(['flow-diagram-edit']);
@@ -92,8 +98,6 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './BaseViews',
             _super.call(this, props);
             this.dragnodestart = null;
             this.dragstart = null;
-            this.moveListener = this.move.bind(this);
-            this.dropListener = this.drop.bind(this);
             this.state = { x: props.item.position.x, y: props.item.position.y, dragging: false };
         }
         FlowDiagramItem.prototype.componentWillReceiveProps = function (nextProps) {
@@ -109,7 +113,9 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './BaseViews',
             var _this = this;
             this.dragnodestart = [this.state.x, this.state.y];
             this.dragstart = [e['clientX'], e['clientY']];
-            console.log('drag', this.props.item);
+            console.log('drag', this.props.item.__syncNodeId, this.props.item);
+            this.moveListener = this.move.bind(this);
+            this.dropListener = this.drop.bind(this);
             this.setState({ dragging: true }, function () {
                 document.addEventListener('mousemove', _this.moveListener);
                 document.addEventListener('mouseup', _this.dropListener);
@@ -127,11 +133,11 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './BaseViews',
             }
         };
         FlowDiagramItem.prototype.drop = function (e) {
-            var _this = this;
+            console.log('drop', this.props.item.__syncNodeId, this.props.item);
+            document.removeEventListener('mousemove', this.moveListener);
+            document.removeEventListener('mouseup', this.dropListener);
+            this.props.item.set('position', { x: this.state.x, y: this.state.y });
             this.setState({ dragging: false }, function () {
-                document.removeEventListener('mousemove', _this.moveListener);
-                document.removeEventListener('mouseup', _this.dropListener);
-                _this.props.item.set('position', { x: _this.state.x, y: _this.state.y });
             });
         };
         FlowDiagramItem.prototype.snapToGrid = function (val, grid) {
@@ -154,7 +160,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './BaseViews',
                 height: item.height + 'px',
                 lineHeight: item.height + 'px'
             };
-            return (React.createElement("div", {"ref": "main", "key": item.key, "className": classNames.join(' '), "style": style, "onMouseDown": this.drag.bind(this)}, item.text));
+            return (React.createElement("div", {"ref": "main", "key": item.key, "className": classNames.join(' '), "style": style, "onMouseDown": this.drag.bind(this)}, item.__syncNodeId, item.text));
         };
         return FlowDiagramItem;
     })(Base.SyncView);

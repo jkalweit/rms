@@ -1,7 +1,7 @@
 /// <reference path="./typings/tsd.d.ts" />
-define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (require, exports, io, Sync, Logger2) {
+define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (require, exports, io, Sync, Logger) {
     "use strict";
-    var Log = Logger2.Log;
+    var Log = Logger.Log;
     var Request = (function () {
         function Request(data) {
             this.requestGuid = Request.guid();
@@ -77,7 +77,6 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
                 else {
                     Log.debug(_this.path, 'Received latest: ' + latest.lastModified);
                     _this.serverLastModified = latest.lastModified;
-                    console.log('handle latest: ', latest);
                     _this.updatesDisabled = true;
                     _this.syncNode.set('local', latest);
                     _this.updatesDisabled = false;
@@ -90,7 +89,6 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
             var _this = this;
             var keys = Object.keys(this.openRequests);
             Log.debug(this.path, 'Sending open requests: ' + keys.length.toString());
-            console.log('Sending open requests: ', keys.length);
             keys.forEach(function (key) {
                 _this.sendRequest(_this.openRequests[key]);
             });
@@ -140,6 +138,10 @@ define(["require", "exports", 'socket.io', './SyncNode', './Logger'], function (
         };
         SyncNodeSocket.prototype.get = function () {
             return this.syncNode['local'];
+        };
+        SyncNodeSocket.prototype.stop = function () {
+            delete this.syncNode.onUpdated;
+            this.server.close();
         };
         return SyncNodeSocket;
     })();

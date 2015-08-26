@@ -82,8 +82,8 @@ export class SyncNodeServer {
             doMerge(this.data, merge);
             this.persistence.persist(this.data);
             socket.emit('updateResponse', new Response(request.requestGuid, null));
-            //socket.broadcast.emit('update', merge); // TODO: Only send to other clients. Hack to make sync work.
-            this.ioNamespace.emit('update', merge); // TODO: This is a hack to make sync work.
+            socket.broadcast.emit('update', merge);
+            //this.ioNamespace.emit('update', merge); // TODO: This was a hack to make sync work.
         });
     });
   }

@@ -2,11 +2,11 @@
 
 import io = require('socket.io');
 import Sync = require('./SyncNode');
-import Logger2 = require('./Logger');
+import Logger = require('./Logger');
 
 "use strict";
 
-var Log = Logger2.Log;
+var Log = Logger.Log;
 
 class Request {
     requestGuid: string;
@@ -114,7 +114,7 @@ export class SyncNodeSocket<T> {
             } else {
                 Log.debug(this.path, 'Received latest: ' + latest.lastModified);
                 this.serverLastModified = latest.lastModified;
-                console.log('handle latest: ', latest);
+                //console.log('handle latest: ', latest);
                 this.updatesDisabled = true;
                 this.syncNode.set('local', latest);
                 this.updatesDisabled = false;
@@ -128,7 +128,7 @@ export class SyncNodeSocket<T> {
     sendOpenRequests() {
         var keys = Object.keys(this.openRequests);
         Log.debug(this.path, 'Sending open requests: ' + keys.length.toString());
-        console.log('Sending open requests: ', keys.length);
+        //console.log('Sending open requests: ', keys.length);
         keys.forEach(key => {
             this.sendRequest(this.openRequests[key]);
         });
@@ -178,5 +178,9 @@ export class SyncNodeSocket<T> {
     }
     get(): T {
         return this.syncNode['local'];
+    }
+    stop() {
+      delete this.syncNode.onUpdated;
+      this.server.close();      
     }
 }

@@ -56,7 +56,6 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
             };
         }
         Tickets.prototype.componentWillReceiveProps = function (nextProps, nextState) {
-            console.log('TicketsView receive new props:', nextProps, nextState);
             if (nextProps.tickets !== this.props.tickets) {
                 this.updateFilteredTickets(nextProps.tickets, this.filterInput.value);
             }
@@ -84,19 +83,14 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
         };
         Tickets.prototype.getFilteredTickets = function (filter, tickets) {
             var _this = this;
-            console.log('get filtered tickets: ', tickets);
             var normalized = filter.trim().toLowerCase();
             var ticketsArray = Utils.toArray(tickets);
-            console.log('ticketsArray: ', ticketsArray);
             var filtered = ticketsArray.filter(function (ticket) {
-                console.log('ticket:', ticket);
                 if (normalized.length === 0 || ticket.name.toLowerCase().indexOf(normalized) >= 0) {
-                    console.log(!ticket.isPaid, _this.state.showPaidTickets);
                     return !ticket.isPaid || _this.state.showPaidTickets;
                 }
                 return false;
             });
-            console.log('filtered: ', filtered);
             return filtered;
         };
         Tickets.prototype.toggleShowPaid = function () {
@@ -107,7 +101,6 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
         };
         Tickets.prototype.render = function () {
             var _this = this;
-            console.log('filteredTickets: ', this.state.filteredTickets);
             var classNames = this.preRender(['ticket-list']);
             var nodes = this.state.filteredTickets.map(function (ticket) {
                 var isSelected = _this.props.selectedTicket === ticket;

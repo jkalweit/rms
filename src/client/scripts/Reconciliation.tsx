@@ -88,7 +88,7 @@ export class Tickets extends Base.SyncView<TicketsProps, TicketsState> {
         };
     }
     componentWillReceiveProps(nextProps: TicketsProps, nextState: any) {
-        console.log('TicketsView receive new props:', nextProps, nextState);
+        //console.log('TicketsView receive new props:', nextProps, nextState);
         if (nextProps.tickets !== this.props.tickets) {
             this.updateFilteredTickets(nextProps.tickets, this.filterInput.value);
         }
@@ -118,20 +118,20 @@ export class Tickets extends Base.SyncView<TicketsProps, TicketsState> {
         this.setState({ filteredTickets: filteredTickets });
     }
     getFilteredTickets(filter: string, tickets: { [key: string]: Models.Ticket }): Models.Ticket[] {
-        console.log('get filtered tickets: ', tickets);
+        //console.log('get filtered tickets: ', tickets);
         var normalized = filter.trim().toLowerCase();
 
         var ticketsArray = Utils.toArray(tickets);
-        console.log('ticketsArray: ', ticketsArray);
+        //console.log('ticketsArray: ', ticketsArray);
         var filtered: Models.Ticket[] = ticketsArray.filter((ticket: Models.Ticket) => {
-            console.log('ticket:', ticket);
+            //console.log('ticket:', ticket);
             if (normalized.length === 0 || ticket.name.toLowerCase().indexOf(normalized) >= 0) {
-                console.log(!ticket.isPaid, this.state.showPaidTickets);
+                //console.log(!ticket.isPaid, this.state.showPaidTickets);
                 return !ticket.isPaid || this.state.showPaidTickets;
             }
             return false;
         });
-        console.log('filtered: ', filtered);
+        //console.log('filtered: ', filtered);
         return filtered;
     }
     toggleShowPaid() {
@@ -141,7 +141,7 @@ export class Tickets extends Base.SyncView<TicketsProps, TicketsState> {
     }
     render() {
         //console.log(this.name, 'render');
-        console.log('filteredTickets: ', this.state.filteredTickets);
+        //console.log('filteredTickets: ', this.state.filteredTickets);
         var classNames = this.preRender(['ticket-list']);
         var nodes = this.state.filteredTickets.map((ticket: Models.Ticket) => {
             var isSelected = this.props.selectedTicket === ticket;

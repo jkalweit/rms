@@ -19,6 +19,7 @@ export interface FlowDiagramsState extends Base.SyncViewState {
     selectedDiagram?: Models.FlowDiagram;
 }
 export class FlowDiagrams extends Base.SyncView<FlowDiagramsProps, FlowDiagramsState> {
+    sync: SyncSocket.SyncNodeSocket<Models.FlowDiagrams>;
     constructor(props: FlowDiagramsProps) {
         super(props);
         var defaultDiagrams: Models.FlowDiagrams;
@@ -33,12 +34,12 @@ export class FlowDiagrams extends Base.SyncView<FlowDiagramsProps, FlowDiagramsS
             }
         };
 
-        var sync = new SyncSocket.SyncNodeSocket<Models.FlowDiagrams>('/flowdiagrams', defaultDiagrams);
-        sync.onStatusChanged = (path: string, status: string) => {
+        this.sync = new SyncSocket.SyncNodeSocket<Models.FlowDiagrams>('/flowdiagrams', defaultDiagrams);
+        this.sync.onStatusChanged = (path: string, status: string) => {
             this.setState({ syncSocketStatus: status });
         };
 
-        sync.onUpdated((updated: Models.FlowDiagrams) => {
+        this.sync.onUpdated((updated: Models.FlowDiagrams) => {
             console.log('updated!', updated);
             var selectedDiagram = this.state.selectedDiagram;
             if (selectedDiagram) selectedDiagram = updated.diagrams[selectedDiagram.key];
@@ -50,6 +51,12 @@ export class FlowDiagrams extends Base.SyncView<FlowDiagramsProps, FlowDiagramsS
             selectedDiagram: null,
             syncSocketStatus: 'Initializing...'
         }
+    }
+    componentWillUnmount() {
+      console.log(this.name, 'unmount');
+      this.sync.stop();
+      delete this.sync.onUpdated;
+      delete this.sync;
     }
     render() {
         var classNames = this.preRender(['flow-diagram-edit']);
@@ -148,8 +155,6 @@ export class FlowDiagramItem extends Base.SyncView<FlowDiagramItemProps, FlowDia
     dropListener: any;
     constructor(props: FlowDiagramItemProps) {
         super(props);
-        this.moveListener = this.move.bind(this);
-        this.dropListener = this.drop.bind(this);
         this.state = { x: props.item.position.x, y: props.item.position.y, dragging: false };
     }
     componentWillReceiveProps(nextProps: FlowDiagramItemProps) {
@@ -164,7 +169,9 @@ export class FlowDiagramItem extends Base.SyncView<FlowDiagramItemProps, FlowDia
     drag(e: React.SyntheticEvent) {
         this.dragnodestart = [this.state.x, this.state.y];
         this.dragstart = [e['clientX'], e['clientY']];
-        console.log('drag', this.props.item);
+        console.log('drag', this.props.item.__syncNodeId, this.props.item);
+        this.moveListener = this.move.bind(this);
+        this.dropListener = this.drop.bind(this);
         this.setState({ dragging: true }, () => {
           document.addEventListener('mousemove', this.moveListener);
           document.addEventListener('mouseup', this.dropListener);
@@ -182,16 +189,18 @@ export class FlowDiagramItem extends Base.SyncView<FlowDiagramItemProps, FlowDia
         }
     }
     drop(e: React.SyntheticEvent) {
+        console.log('drop', this.props.item.__syncNodeId, this.props.item);
+        document.removeEventListener('mousemove', this.moveListener);
+        document.removeEventListener('mouseup', this.dropListener);
+        //console.log('here', this.props.item.__syncNodeId, this.props.item);
+        (this.props.item as Sync.ISyncNode).set('position', {x: this.state.x, y: this.state.y});
         this.setState({ dragging: false }, () => {
-          document.removeEventListener('mousemove', this.moveListener);
-          document.removeEventListener('mouseup', this.dropListener);
           //var mutable = JSON.parse(JSON.stringify(this.props.item)) as Models.FlowDiagramItem;
           //mutable.x = this.state.x;
           //mutable.y = this.state.y;
           //console.log('dropped: ', mutable);
           // var x = this.state.x;
           // var y = this.state.y;
-          (this.props.item as Sync.ISyncNode).set('position', {x: this.state.x, y: this.state.y});
         });
     }
     snapToGrid(val: number, grid: number) {
@@ -215,7 +224,7 @@ export class FlowDiagramItem extends Base.SyncView<FlowDiagramItemProps, FlowDia
         };
         return (
             <div ref="main" key={item.key} className={classNames.join(' ')} style={style}
-            onMouseDown={this.drag.bind(this) }>{item.text}</div>
+            onMouseDown={this.drag.bind(this) }>{item.__syncNodeId} {item.text}</div>
         );
     }
 }

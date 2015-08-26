@@ -10,20 +10,40 @@ export interface NavigatorProps {
 }
 export interface NavigationState {
   isSelected?: boolean;
+  path?: string[];
+  query?: {[key: string]: string | boolean};
 }
 export class NavigationBase extends React.Component<NavigatorProps, NavigationState> {
     constructor(props: NavigatorProps) {
         super(props);
-        this.state = { isSelected: this.compareHash() };
+        this.state = this.parseHash();
         window.addEventListener('hashchange', () => {
-            this.setState({ isSelected: this.compareHash() });
+          this.setState(this.parseHash());
         });
     }
-    compareHash(): boolean {
-        var normalizedHash = (location.hash || '').toLowerCase();
+    parseHash(): NavigationState {
+        var split = location.hash.split('?');
+
+        var normalizedHash = (split[0] || '').toLowerCase();
         if (normalizedHash == '') normalizedHash = '#';
 
-        return normalizedHash == this.props.hash;
+        var path = normalizedHash.split('/');
+
+        var query: {[key: string]: string | boolean} = {};
+        if(split.length > 1) {
+          var querySplit = split[1].split('&');
+          querySplit.forEach((param: string) => {
+            var paramSplit = param.split('=');
+            var value: any = true;
+            if(paramSplit.length > 1) {
+              value = paramSplit[1];
+            }
+            query[paramSplit[0]] = value;
+          });
+        }
+        var isSelected = path[0] == this.props.hash;
+        var state = { isSelected: isSelected, path: path, query: query };
+        return state;
     }
     render() {
         return (<div>Navigator Base is an abstract class.You must implement your own render().</div>);

@@ -34,12 +34,38 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
             sync.onUpdated(function (updated) {
                 _this.setState({ reconciliation: updated });
             });
+            window.addEventListener('hashchange', function () {
+                _this.setState({ nav: _this.parseHash() });
+            });
             this.state = {
                 reconciliation: sync.get(),
                 isNavOpen: false,
-                syncSocketStatus: sync.status
+                syncSocketStatus: sync.status,
+                nav: this.parseHash()
             };
         }
+        MainView.prototype.parseHash = function () {
+            var split = location.hash.split('?');
+            var normalizedHash = (split[0] || '').toLowerCase();
+            if (normalizedHash == '')
+                normalizedHash = '#';
+            var path = normalizedHash.split('/');
+            var query = {};
+            if (split.length > 1) {
+                var querySplit = split[1].split('&');
+                querySplit.forEach(function (param) {
+                    var paramSplit = param.split('=');
+                    var value = true;
+                    if (paramSplit.length > 1) {
+                        value = paramSplit[1];
+                    }
+                    query[paramSplit[0]] = value;
+                });
+            }
+            var state = { path: path, query: query };
+            console.log('state', state);
+            return state;
+        };
         MainView.prototype.closeNav = function () {
             this.setState({ isNavOpen: false });
         };
@@ -47,7 +73,24 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
             var _this = this;
             var className = (this.state.isNavOpen ? 'open' : '');
             var headerClassName = 'sticky-header ' + (this.state.syncSocketStatus === 'Connected' ? '' : 'error');
-            return (React.createElement("div", null, React.createElement("div", {"className": headerClassName}, React.createElement("ul", {"className": className}, React.createElement("li", {"className": "hamburger-icon", "onClick": function () { _this.setState({ isNavOpen: !_this.state.isNavOpen }); }}, React.createElement("span", {"className": "col-2 fa fa-bars"})), React.createElement("li", null, React.createElement(Nav.NavigationItem, {"hash": "#", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-2"}, "RMS"))), React.createElement("li", {"className": "hamburger"}, React.createElement(Nav.NavigationItem, {"hash": "#reconciliation", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-6"}, "Reconciliation"))), React.createElement("li", {"className": "hamburger"}, React.createElement(Nav.NavigationItem, {"hash": "#menu", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-5"}, "Menu"))), React.createElement("li", {"className": "hamburger"}, React.createElement(Nav.NavigationItem, {"hash": "#diagrams", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-5"}, "Diagrams"))), React.createElement("li", {"className": "hamburger"}, React.createElement(Nav.NavigationItem, {"hash": "#kitchen", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-5"}, "Kitchen"))), React.createElement("li", {"className": "hamburger status"}, "Server: ", this.state.syncSocketStatus))), React.createElement(Nav.NavigationView, {"hash": "#"}, React.createElement("h1", null, "Welcome to RMS"), React.createElement("p", null, "There will be a dashboard here later."), React.createElement("p", null, "Use the navigation above to select a location."), React.createElement(LogView, {"ref": "logView"})), React.createElement(Nav.NavigationView, {"hash": "#reconciliation"}, React.createElement(Rec.ReconciliationView, {"reconciliation": this.state.reconciliation})), React.createElement(Nav.NavigationView, {"hash": "#menu"}, React.createElement(Menu.MenuEdit, {"menu": this.state.reconciliation.menu})), React.createElement(Nav.NavigationView, {"hash": "#kitchen"}, React.createElement("h1", null, "The kitchen!")), React.createElement(Nav.NavigationView, {"hash": "#diagrams"}, React.createElement(Flow.FlowDiagrams, null)), "*/  }"));
+            var view;
+            var hash = this.state.nav.path[0];
+            if (hash == '#diagrams') {
+                view = (React.createElement(Flow.FlowDiagrams, null));
+            }
+            else if (hash == "#reconciliation") {
+                view = (React.createElement(Rec.ReconciliationView, {"reconciliation": this.state.reconciliation}));
+            }
+            else if (hash == "#menu") {
+                view = (React.createElement(Menu.MenuEdit, {"menu": this.state.reconciliation.menu}));
+            }
+            else if (hash == "#kitchen") {
+                view = (React.createElement("div", null, React.createElement("h1", null, "The kitchen!")));
+            }
+            else {
+                view = (React.createElement("div", null, React.createElement(LogView, {"ref": "logView"})));
+            }
+            return (React.createElement("div", null, React.createElement("div", {"className": headerClassName}, React.createElement("ul", {"className": className}, React.createElement("li", {"className": "hamburger-icon", "onClick": function () { _this.setState({ isNavOpen: !_this.state.isNavOpen }); }}, React.createElement("span", {"className": "col-2 fa fa-bars"})), React.createElement("li", null, React.createElement(Nav.NavigationItem, {"hash": "#", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-2"}, "RMS"))), React.createElement("li", {"className": "hamburger"}, React.createElement(Nav.NavigationItem, {"hash": "#reconciliation", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-6"}, "Reconciliation"))), React.createElement("li", {"className": "hamburger"}, React.createElement(Nav.NavigationItem, {"hash": "#menu", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-5"}, "Menu"))), React.createElement("li", {"className": "hamburger"}, React.createElement(Nav.NavigationItem, {"hash": "#diagrams", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-5"}, "Diagrams"))), React.createElement("li", {"className": "hamburger"}, React.createElement(Nav.NavigationItem, {"hash": "#kitchen", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-5"}, "Kitchen"))), React.createElement("li", {"className": "hamburger status"}, "Server: ", this.state.syncSocketStatus))), React.createElement("div", {"className": 'navigation-view'}, view)));
         };
         return MainView;
     })(React.Component);

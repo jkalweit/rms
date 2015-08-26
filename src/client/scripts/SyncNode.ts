@@ -87,10 +87,11 @@ export class SyncNode implements ISyncNode {
                 if (className !== 'SyncNode') {
                     prop = new SyncNode(prop, prop.lastModified || lastModified);
                     //console.log('herrrrrre2')
-                    SyncNode.addNE(prop, 'onUpdated', SyncNode.createOnUpdated(this, propName));
                 } else {
+                    //delete
                     //console.log('herrrrrre        1')
                 }
+                SyncNode.addNE(prop, 'onUpdated', SyncNode.createOnUpdated(this, propName));
             }
 
             SyncNode.addImmutable(this, propName, prop);
@@ -119,19 +120,19 @@ export class SyncNode implements ISyncNode {
           Log.error('SyncNode', message);
         }
 
-        var current: ISyncNode = this;
+        //var current: ISyncNode = this;
 
         Object.keys(update).forEach(key => {
             if (key === 'lastModified') {
-                delete current.lastModified;
-                SyncNode.addImmutableButConfigurable(current, 'lastModified', update['lastModified']);
+                delete this.lastModified;
+                SyncNode.addImmutableButConfigurable(this, 'lastModified', update['lastModified']);
             }
             else if (key === '__remove') {
-                current.remove(update[key]);
+                this.remove(update[key]);
             } else {
-                var nextNode = current[key];
+                var nextNode = this[key];
                 if (!nextNode || typeof update[key] !== 'object') {
-                    current = current.set(key, update[key]).parentImmutable;
+                    this.set(key, update[key]);
                 } else {
                     nextNode.merge(update[key]);
                 }
@@ -168,7 +169,7 @@ export class SyncNode implements ISyncNode {
             //console.log('CreateOnUpdated: replaceWithMe: ', replaceWithMe);
             SyncNode.addImmutable(replaceWithMe, propName, updated);
             SyncNode.addNE(updated, 'onUpdated', SyncNode.createOnUpdated(replaceWithMe, propName));
-            //console.log('Doing update!', prop, target, updated, replaceWithMe);
+            //console.log('Doing update!', propName, target, updated, replaceWithMe);
             var newPath = propName + (path ? '.' + path : '');
             var newMerge = { lastModified: replaceWithMe.lastModified };
             newMerge[propName] = merge;

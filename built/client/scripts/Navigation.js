@@ -10,16 +10,32 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
         function NavigationBase(props) {
             var _this = this;
             _super.call(this, props);
-            this.state = { isSelected: this.compareHash() };
+            this.state = this.parseHash();
             window.addEventListener('hashchange', function () {
-                _this.setState({ isSelected: _this.compareHash() });
+                _this.setState(_this.parseHash());
             });
         }
-        NavigationBase.prototype.compareHash = function () {
-            var normalizedHash = (location.hash || '').toLowerCase();
+        NavigationBase.prototype.parseHash = function () {
+            var split = location.hash.split('?');
+            var normalizedHash = (split[0] || '').toLowerCase();
             if (normalizedHash == '')
                 normalizedHash = '#';
-            return normalizedHash == this.props.hash;
+            var path = normalizedHash.split('/');
+            var query = {};
+            if (split.length > 1) {
+                var querySplit = split[1].split('&');
+                querySplit.forEach(function (param) {
+                    var paramSplit = param.split('=');
+                    var value = true;
+                    if (paramSplit.length > 1) {
+                        value = paramSplit[1];
+                    }
+                    query[paramSplit[0]] = value;
+                });
+            }
+            var isSelected = path[0] == this.props.hash;
+            var state = { isSelected: isSelected, path: path, query: query };
+            return state;
         };
         NavigationBase.prototype.render = function () {
             return (React.createElement("div", null, "Navigator Base is an abstract class.You must implement your own render()."));

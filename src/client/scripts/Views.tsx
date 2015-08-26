@@ -26,11 +26,16 @@ export class Bootstrap {
 
 
 
-
+export interface NavigationInfo {
+  path?: string[];
+  query?: {[key: string]: string | boolean};
+}
 export interface MainViewState {
     reconciliation?: Models.Reconciliation;
     isNavOpen?: boolean;
     syncSocketStatus?: string;
+
+    nav?: NavigationInfo;
 }
 export class MainView extends React.Component<{}, MainViewState> {
     constructor(props: {}) {
@@ -56,11 +61,40 @@ export class MainView extends React.Component<{}, MainViewState> {
 
         //console.log('sync.get: ', sync.get());
 
+        window.addEventListener('hashchange', () => {
+          this.setState({ nav: this.parseHash() });
+        });
+
         this.state = {
             reconciliation: sync.get(),
             isNavOpen: false,
-            syncSocketStatus: sync.status
+            syncSocketStatus: sync.status,
+            nav: this.parseHash()
         };
+    }
+    parseHash(): NavigationInfo {
+        var split = location.hash.split('?');
+
+        var normalizedHash = (split[0] || '').toLowerCase();
+        if (normalizedHash == '') normalizedHash = '#';
+
+        var path = normalizedHash.split('/');
+
+        var query: {[key: string]: string | boolean} = {};
+        if(split.length > 1) {
+          var querySplit = split[1].split('&');
+          querySplit.forEach((param: string) => {
+            var paramSplit = param.split('=');
+            var value: any = true;
+            if(paramSplit.length > 1) {
+              value = paramSplit[1];
+            }
+            query[paramSplit[0]] = value;
+          });
+        }
+        var state = { path: path, query: query };
+        console.log('state', state);
+        return state;
     }
     closeNav() {
         this.setState({ isNavOpen: false });
@@ -71,6 +105,35 @@ export class MainView extends React.Component<{}, MainViewState> {
         var className = (this.state.isNavOpen ? 'open' : '');
 
         var headerClassName = 'sticky-header ' + (this.state.syncSocketStatus === 'Connected' ? '' : 'error');
+
+        var view: any;
+
+        var hash = this.state.nav.path[0];
+
+        if(hash == '#diagrams') {
+            view = (
+              <Flow.FlowDiagrams></Flow.FlowDiagrams>
+            );
+        } else if(hash == "#reconciliation") {
+           view = (
+             <Rec.ReconciliationView reconciliation={this.state.reconciliation}></Rec.ReconciliationView>
+           );
+        } else if(hash == "#menu") {
+          view = (
+            <Menu.MenuEdit menu={this.state.reconciliation.menu}></Menu.MenuEdit>
+          );
+        } else if(hash == "#kitchen") {
+          view = (
+            <div><h1>The kitchen!</h1></div>
+          );
+        } else {
+          view = (
+            <div>
+              <LogView ref="logView"></LogView>
+            </div>
+          );
+        }
+
 
         return (
             <div>
@@ -85,6 +148,11 @@ export class MainView extends React.Component<{}, MainViewState> {
                 <li className="hamburger status">Server: {this.state.syncSocketStatus}</li>
               </ul>
             </div>
+
+            <div className='navigation-view'>
+            { view }
+            </div>
+            { /*
             <Nav.NavigationView hash="#">
               <h1>Welcome to RMS</h1>
               <p>There will be a dashboard here later.</p>
@@ -95,8 +163,7 @@ export class MainView extends React.Component<{}, MainViewState> {
             <Nav.NavigationView hash="#menu"><Menu.MenuEdit menu={this.state.reconciliation.menu}></Menu.MenuEdit></Nav.NavigationView>
             <Nav.NavigationView hash="#kitchen"><h1>The kitchen!</h1></Nav.NavigationView>
             <Nav.NavigationView hash="#diagrams"><Flow.FlowDiagrams></Flow.FlowDiagrams></Nav.NavigationView>
-          */  }
-          { /*
+
             <kitchenViews.KitchenOrdersView></kitchenViews.KitchenOrdersView>
              <inventoryViews.InventoryView></inventoryViews.InventoryView>
             <vendorViews.VendorsView></vendorViews.VendorsView>
