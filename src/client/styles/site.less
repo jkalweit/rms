@@ -180,7 +180,7 @@ input, textarea, keygen, select, button {
 @header-height: 50px;
 .sticky-header {
   position: fixed;
-  z-index: 1;
+  z-index: 3;
   top: 0;
   left: 0;
   width: 100%;
@@ -188,7 +188,7 @@ input, textarea, keygen, select, button {
   font-size: @header-font-size;
   height: @header-height;
   color: @mdc-black-dark;
-  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.52);
 
   &.error {
     background-color: @mdc-red-500;
@@ -240,7 +240,6 @@ input, textarea, keygen, select, button {
         padding: 0;
         height: 100%;
         text-align: center;
-
         a {
           .link;
         }
@@ -254,13 +253,11 @@ input, textarea, keygen, select, button {
   @media screen and (max-width: @mobile-width) {
 
       ul {
-        overflow: visible;
         height: auto;
         box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.5);
 
         li {
           height: @header-height;
-          overflow: hidden;
         }
       }
 
@@ -272,7 +269,6 @@ input, textarea, keygen, select, button {
 
       .open .hamburger {
         text-align: left;
-        overflow: auto;
         z-index: 2;
         position: relative;
         display: block;
@@ -301,7 +297,7 @@ input, textarea, keygen, select, button {
   left: 0; right: 0;
   // width: 100%;
   // height: 100%;
-  background-color: @mdc-yellow-50;
+  background-color: @mdc-black-light;
   transition: opacity 200ms;
 }
 

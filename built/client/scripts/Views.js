@@ -37,7 +37,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
         }
         MainView.prototype.parseHash = function () {
             var split = location.hash.split('?');
-            var normalizedHash = (split[0] || '').toLowerCase();
+            var normalizedHash = (split[0] || '');
             if (normalizedHash == '')
                 normalizedHash = '#';
             var path = normalizedHash.split('/');
@@ -104,7 +104,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
             var className = (this.state.isNavOpen ? 'open' : '');
             var headerClassName = 'sticky-header ' + (this.state.syncSocketStatus === 'Connected' ? '' : 'error');
             var view;
-            var hash = this.state.nav.path[0];
+            var hash = this.state.nav.path[0].toLowerCase();
             if (hash == '#diagrams') {
                 view = (React.createElement(Flow.FlowDiagrams, {"diagrams": this.state.diagrams, "path": this.state.nav.path}));
             }

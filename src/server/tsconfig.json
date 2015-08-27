@@ -10,8 +10,8 @@
     ],
     "files": [
         "./Persistence.ts",
+        "./Server.ts",
         "./SyncNodeServer.ts",
-        "./db.ts",
-        "./server.ts"
+        "./db.ts"
     ]
 }

@@ -19,10 +19,26 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
         };
         FlowDiagrams.prototype.getSelectedDiagram = function (props) {
             var key = props.path[1];
+            console.log('path', props.path);
             return key ? props.diagrams.diagrams[key] : null;
         };
         FlowDiagrams.prototype.gotoDiagram = function (key) {
             location.hash = '#diagrams/' + key;
+        };
+        FlowDiagrams.prototype.newDiagram = function () {
+            var diagram = {
+                key: new Date().toISOString(),
+                name: 'New Diagram',
+                items: {}
+            };
+            this.props.diagrams.diagrams.set(diagram.key, diagram);
+            this.gotoDiagram(diagram.key);
+        };
+        FlowDiagrams.prototype.deleteDiagram = function (key) {
+            if (!confirm('Delete this diagram?'))
+                return;
+            this.props.diagrams.diagrams.remove(key);
+            this.gotoDiagram('');
         };
         FlowDiagrams.prototype.render = function () {
             var _this = this;
@@ -31,7 +47,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
             var nodes = diagramsArray.map(function (diagram) {
                 return (React.createElement("li", {"key": diagram.key, "onClick": function () { _this.gotoDiagram(diagram.key); }}, diagram.name));
             });
-            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("div", null, React.createElement("ul", null, nodes)), this.state.selectedDiagram ? React.createElement(FlowDiagramEdit, {"diagram": this.state.selectedDiagram}) : null));
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("div", {"className": "drawer-left"}, React.createElement("ul", null, React.createElement("li", {"onClick": this.newDiagram.bind(this)}, "New Diagram"), nodes)), this.state.selectedDiagram ? React.createElement(FlowDiagramEdit, {"diagram": this.state.selectedDiagram, "onDelete": this.deleteDiagram.bind(this)}) : null));
         };
         return FlowDiagrams;
     })(Base.SyncView);
@@ -44,8 +60,13 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
             this.state = { selectedItem: null };
         }
         FlowDiagramEdit.prototype.componentWillReceiveProps = function (props) {
-            if (this.state.selectedItem)
-                this.setState({ selectedItem: props.diagram.items[this.state.selectedItem.key] });
+            if (this.shouldComponentUpdate(props, null)) {
+                if (this.state.selectedItem)
+                    this.setState({
+                        selectedItem: props.diagram.items[this.state.selectedItem.key],
+                        mutable: { name: props.diagram.name }
+                    });
+            }
         };
         FlowDiagramEdit.prototype.newItem = function () {
             var mutable = {
@@ -63,6 +84,9 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
             var result = this.props.diagram.items.set(this.state.selectedItem.key, item);
             this.setState({ selectedItem: result.value });
         };
+        FlowDiagramEdit.prototype.updateDiagramName = function (e) {
+            this.props.diagram.set('name', e.target.value);
+        };
         FlowDiagramEdit.prototype.render = function () {
             var _this = this;
             var classNames = this.preRender(['flow-diagram-edit']);
@@ -71,9 +95,9 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
                 var isSelected = _this.state.selectedItem && _this.state.selectedItem.key === item.key;
                 return (React.createElement(FlowDiagramItem, {"item": item, "key": item.key, "isSelected": isSelected, "onSelected": function (item) { console.log('here'); _this.setState({ selectedItem: item }); }}));
             });
-            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("div", {"className": "drawer-right"}, React.createElement("button", {"onClick": this.newItem.bind(this)}, "New Item"), this.state.selectedItem ?
-                React.createElement("div", null, React.createElement("h3", null, "Item selected: ", this.state.selectedItem.__syncNodeId), React.createElement(FlowDiagramItemEdit, {"item": this.state.selectedItem, "onSave": this.saveItem.bind(this)}), React.createElement("button", {"onClick": function () { _this.props.diagram.items.remove(_this.state.selectedItem.key); _this.setState({ selectedItem: null }); }}, "Delete"))
-                : null), nodes));
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("div", {"className": "drawer-right"}, React.createElement("button", {"onClick": this.newItem.bind(this)}, "New Item"), React.createElement("button", {"onClick": function () { _this.props.onDelete(_this.props.diagram.key); }}, "Delete"), React.createElement("input", {"ref": "diagramName", "value": this.props.diagram.name, "onChange": this.handleChange.bind(this, 'mutable', 'name'), "onBlur": this.updateDiagramName.bind(this)}), this.state.selectedItem ?
+                React.createElement("div", null, React.createElement("h3", null, "Edit Item"), React.createElement(FlowDiagramItemEdit, {"item": this.state.selectedItem, "onSave": this.saveItem.bind(this)}), React.createElement("button", {"onClick": function () { _this.props.diagram.items.remove(_this.state.selectedItem.key); _this.setState({ selectedItem: null }); }}, "Delete"))
+                : null), React.createElement("div", {"className": "flow-diagram"}, nodes)));
         };
         return FlowDiagramEdit;
     })(Base.SyncView);

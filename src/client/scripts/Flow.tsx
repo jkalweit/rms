@@ -31,10 +31,26 @@ export class FlowDiagrams extends Base.SyncView<FlowDiagramsProps, FlowDiagramsS
     }
     getSelectedDiagram(props: FlowDiagramsProps): Models.FlowDiagram {
       var key = props.path[1];
+      console.log('path', props.path);
       return key ? props.diagrams.diagrams[key] : null;
     }
     gotoDiagram(key: string) {
       location.hash = '#diagrams/' + key;
+    }
+    newDiagram() {
+      var diagram: Models.FlowDiagram = {
+        key: new Date().toISOString(),
+        name: 'New Diagram',
+        items: {}
+      };
+      (this.props.diagrams.diagrams as Sync.ISyncNode).set(diagram.key, diagram);
+      this.gotoDiagram(diagram.key);
+    }
+    deleteDiagram(key: string) {
+        if(!confirm('Delete this diagram?')) return;
+        (this.props.diagrams.diagrams as Sync.ISyncNode).remove(key);
+        //this.setState({ selectedDiagram: null });
+        this.gotoDiagram('');
     }
     render() {
         var classNames = this.preRender(['flow-diagram-edit']);
@@ -46,13 +62,14 @@ export class FlowDiagrams extends Base.SyncView<FlowDiagramsProps, FlowDiagramsS
         });
         return (
             <div className={classNames.join(' ') }>
-            <div>
-              <ul>
-                { nodes }
-              </ul>
-            </div>
+              <div className="drawer-left">
+                <ul>
+                  <li onClick={ this.newDiagram.bind(this) }>New Diagram</li>
+                  { nodes }
+                </ul>
+              </div>
             {
-              this.state.selectedDiagram ? <FlowDiagramEdit diagram={this.state.selectedDiagram}></FlowDiagramEdit> : null
+              this.state.selectedDiagram ? <FlowDiagramEdit diagram={this.state.selectedDiagram} onDelete={ this.deleteDiagram.bind(this) }></FlowDiagramEdit> : null
             }
             </div>
         );
@@ -64,9 +81,11 @@ export class FlowDiagrams extends Base.SyncView<FlowDiagramsProps, FlowDiagramsS
 
 export interface FlowDiagramEditProps {
     diagram: Models.FlowDiagram;
+    onDelete(key: string): void;
 }
 export interface FlowDiagramEditState extends Base.SyncViewState {
     selectedItem: Models.FlowDiagramItem;
+    mutable?: Models.FlowDiagram;
 }
 export class FlowDiagramEdit extends Base.SyncView<FlowDiagramEditProps, FlowDiagramEditState> {
     name: string = '  FlowDiagramEdit';
@@ -75,7 +94,12 @@ export class FlowDiagramEdit extends Base.SyncView<FlowDiagramEditProps, FlowDia
         this.state = { selectedItem: null };
     }
     componentWillReceiveProps(props: FlowDiagramEditProps) {
-        if (this.state.selectedItem) this.setState({ selectedItem: props.diagram.items[this.state.selectedItem.key] });
+        if(this.shouldComponentUpdate(props, null)) {
+          if (this.state.selectedItem) this.setState({
+            selectedItem: props.diagram.items[this.state.selectedItem.key],
+            mutable: { name: props.diagram.name } as Models.FlowDiagram
+          });
+        }
     }
     newItem() {
         var mutable = {
@@ -94,6 +118,9 @@ export class FlowDiagramEdit extends Base.SyncView<FlowDiagramEditProps, FlowDia
         var result = (this.props.diagram.items as Sync.ISyncNode).set(this.state.selectedItem.key, item);
         this.setState({ selectedItem: result.value });
     }
+    updateDiagramName(e: Event) {
+        (this.props.diagram as Sync.ISyncNode).set('name', (e.target as any).value);
+    }
     render() {
         var classNames = this.preRender(['flow-diagram-edit']);
         var itemsArray = Utils.toArray(this.props.diagram.items);
@@ -107,9 +134,11 @@ export class FlowDiagramEdit extends Base.SyncView<FlowDiagramEditProps, FlowDia
             <div className={classNames.join(' ') }>
               <div className="drawer-right">
                 <button onClick={this.newItem.bind(this) }>New Item</button>
+                <button onClick={() => { this.props.onDelete(this.props.diagram.key); }}>Delete</button>
+                <input ref="diagramName" value={ this.props.diagram.name } onChange={ this.handleChange.bind(this, 'mutable', 'name') } onBlur={ this.updateDiagramName.bind(this) } />
                 { this.state.selectedItem ?
                     <div>
-                      <h3>Item selected: {this.state.selectedItem.__syncNodeId}</h3>
+                      <h3>Edit Item</h3>
                       <FlowDiagramItemEdit item={this.state.selectedItem}
                       onSave={ this.saveItem.bind(this) }
                       ></FlowDiagramItemEdit>
@@ -118,7 +147,11 @@ export class FlowDiagramEdit extends Base.SyncView<FlowDiagramEditProps, FlowDia
                     : null }
               </div>
 
-              { nodes }
+              <div className="flow-diagram">
+
+                { nodes }
+
+              </div>
 
             </div>
         );
@@ -161,7 +194,7 @@ export class FlowDiagramItemEdit extends Base.SyncView<FlowDiagramItemEditProps,
             <div>
               <input value={mutable.text} onChange={this.handleChange.bind(this, 'mutable', 'text')} onBlur={ this.save.bind(this) } />
               <input value={mutable.width.toString()} onChange={this.handleChange.bind(this, 'mutable', 'width')} onBlur={ this.save.bind(this) } />
-              <input value={mutable.height.toString()} onChange={this.handleChange.bind(this, 'mutable', 'height')} onBlur={ this.save.bind(this) } />              
+              <input value={mutable.height.toString()} onChange={this.handleChange.bind(this, 'mutable', 'height')} onBlur={ this.save.bind(this) } />
             </div>
         );
     }

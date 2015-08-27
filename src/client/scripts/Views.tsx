@@ -62,7 +62,7 @@ export class MainView extends React.Component<{}, MainViewState> {
     parseHash(): NavigationInfo {
         var split = location.hash.split('?');
 
-        var normalizedHash = (split[0] || '').toLowerCase();
+        var normalizedHash = (split[0] || ''); //.toLowerCase();
         if (normalizedHash == '') normalizedHash = '#';
 
         var path = normalizedHash.split('/');
@@ -139,7 +139,7 @@ export class MainView extends React.Component<{}, MainViewState> {
 
         var view: any;
 
-        var hash = this.state.nav.path[0];
+        var hash = this.state.nav.path[0].toLowerCase();
 
         if(hash == '#diagrams') {
             view = (
