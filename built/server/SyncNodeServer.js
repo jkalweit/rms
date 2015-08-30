@@ -20,6 +20,29 @@ var SyncNodeServer = (function () {
             _this.start();
         });
     }
+    SyncNodeServer.prototype.handleUpdate = function () {
+    };
+    SyncNodeServer.prototype.doMerge = function (obj, merge) {
+        var _this = this;
+        if (typeof merge !== 'object')
+            return merge;
+        Object.keys(merge).forEach(function (key) {
+            if (key === 'lastModified' && obj[key] > merge[key]) {
+                console.error('Server version lastModified GREATER THAN merge lastModified', obj[key], merge[key]);
+            }
+            if (key === '__remove') {
+                delete obj[merge[key]];
+            }
+            else {
+                var nextObj = obj[key] || {};
+                obj[key] = _this.doMerge(nextObj, merge[key]);
+            }
+        });
+        return obj;
+    };
+    SyncNodeServer.prototype.persist = function () {
+        this.persistence.persist(this.data);
+    };
     SyncNodeServer.prototype.start = function () {
         var _this = this;
         this.ioNamespace = this.io.of('/' + this.namespace);
@@ -35,27 +58,10 @@ var SyncNodeServer = (function () {
                     socket.emit('latest', null);
                 }
             });
-            function doMerge(obj, merge) {
-                if (typeof merge !== 'object')
-                    return merge;
-                Object.keys(merge).forEach(function (key) {
-                    if (key === 'lastModified' && obj[key] > merge[key]) {
-                        console.error('Server version lastModified GREATER THAN merge lastModified', obj[key], merge[key]);
-                    }
-                    if (key === '__remove') {
-                        delete obj[merge[key]];
-                    }
-                    else {
-                        var nextObj = obj[key] || {};
-                        obj[key] = doMerge(nextObj, merge[key]);
-                    }
-                });
-                return obj;
-            }
             socket.on('update', function (request) {
                 var merge = request.data;
-                doMerge(_this.data, merge);
-                _this.persistence.persist(_this.data);
+                _this.doMerge(_this.data, merge);
+                _this.persist();
                 socket.emit('updateResponse', new Response(request.requestGuid, null));
                 socket.broadcast.emit('update', merge);
             });

@@ -19,6 +19,9 @@
     },
     "socket.io/socket.io.d.ts": {
       "commit": "f6c8ca47193fb67947944a3170912672ac3e908e"
+    },
+    "body-parser/body-parser.d.ts": {
+      "commit": "d2bab5738b84b91d8ee18a68c7b379a9714cf82f"
     }
   }
 }

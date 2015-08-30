@@ -40,6 +40,30 @@ export class SyncNodeServer {
     });
   }
 
+  handleUpdate() {
+
+  }
+  doMerge(obj: Object, merge: any) {
+      //console.log('Doing merge: ', merge);
+      if (typeof merge !== 'object') return merge;
+      Object.keys(merge).forEach(key => {
+          if(key === 'lastModified' && obj[key] > merge[key]) {
+            console.error('Server version lastModified GREATER THAN merge lastModified', obj[key], merge[key]);
+          }
+          if (key === '__remove') {
+              delete obj[merge[key]];
+          } else {
+              var nextObj = obj[key] || {};
+              // console.log('Doing merge here obj: ', nextObj);
+              // console.log('Doing merge here     merge: ', merge[key]);
+              obj[key] = this.doMerge(nextObj, merge[key]);
+          }
+      });
+      return obj;
+  }
+  persist() {
+    this.persistence.persist(this.data);
+  }
   start() {
     this.ioNamespace = this.io.of('/' + this.namespace);
     this.ioNamespace.on('connection', (socket: SocketIO.Socket) => {
@@ -57,30 +81,13 @@ export class SyncNodeServer {
             }
         });
 
-        function doMerge(obj: Object, merge: any) {
-            //console.log('Doing merge: ', merge);
-            if (typeof merge !== 'object') return merge;
-            Object.keys(merge).forEach(key => {
-                if(key === 'lastModified' && obj[key] > merge[key]) {
-                  console.error('Server version lastModified GREATER THAN merge lastModified', obj[key], merge[key]);
-                }
-                if (key === '__remove') {
-                    delete obj[merge[key]];
-                } else {
-                    var nextObj = obj[key] || {};
-                    // console.log('Doing merge here obj: ', nextObj);
-                    // console.log('Doing merge here     merge: ', merge[key]);
-                    obj[key] = doMerge(nextObj, merge[key]);
-                }
-            });
-            return obj;
-        }
+
 
         socket.on('update', (request: Request) => {
             var merge = request.data;
             //console.log('Do merge: ', merge);
-            doMerge(this.data, merge);
-            this.persistence.persist(this.data);
+            this.doMerge(this.data, merge);
+            this.persist();
             socket.emit('updateResponse', new Response(request.requestGuid, null));
             socket.broadcast.emit('update', merge);
             //this.ioNamespace.emit('update', merge); // TODO: This was a hack to make sync work.

@@ -9,6 +9,7 @@ import Nav = require('./Navigation');
 import Logger = require('./Logger');
 import Rec = require('./Reconciliation');
 import Menu = require('./Menu');
+import Kitchen = require('./Kitchen');
 import Flow = require('./Flow');
 
 
@@ -33,6 +34,7 @@ export interface NavigationInfo {
 export interface MainViewState {
     reconciliation?: Models.Reconciliation;
     diagrams?: Models.FlowDiagrams;
+    kitchen?: Models.Kitchen;
     isNavOpen?: boolean;
     syncSocketStatus?: string;
 
@@ -44,6 +46,7 @@ export class MainView extends React.Component<{}, MainViewState> {
 
         var recSync = this.startReconciliationConnection();
         var flowSync = this.startFlowDiagramsConnection();
+        var kitchenSync = this.startKitchenConnection();
         //console.log('sync.get: ', sync.get());
 
         window.addEventListener('hashchange', () => {
@@ -54,6 +57,7 @@ export class MainView extends React.Component<{}, MainViewState> {
         this.state = {
             reconciliation: recSync.get(),
             diagrams: flowSync.get(),
+            kitchen: kitchenSync.get(),
             isNavOpen: false,
             syncSocketStatus: recSync.status,
             nav: this.parseHash()
@@ -120,13 +124,21 @@ export class MainView extends React.Component<{}, MainViewState> {
       };
 
       var sync = new Sync.SyncNodeSocket<Models.FlowDiagrams>('/flowdiagrams', defaultDiagrams);
-      sync.onStatusChanged = (path: string, status: string) => {
-          this.setState({ syncSocketStatus: status });
-      };
 
       sync.onUpdated((updated: Models.FlowDiagrams) => {
           console.log('updated Diagrams!', updated);
           this.setState({ diagrams: updated });
+      });
+      return sync;
+    }
+    startKitchenConnection(): Sync.SyncNodeSocket<Models.Kitchen> {
+      var defaultKitchen: Models.Kitchen = {
+          orders: {}
+      };
+      var sync = new Sync.SyncNodeSocket<Models.Kitchen>('/kitchen', defaultKitchen);
+      sync.onUpdated((updated: Models.Kitchen) => {
+          console.log('updated Kitchen!', updated);
+          this.setState({ kitchen: updated });
       });
       return sync;
     }
@@ -155,7 +167,7 @@ export class MainView extends React.Component<{}, MainViewState> {
           );
         } else if(hash == "#kitchen") {
           view = (
-            <div><h1>The kitchen!</h1></div>
+            <Kitchen.KitchenOrdersView orders={this.state.kitchen.orders}></Kitchen.KitchenOrdersView>
           );
         } else {
           view = (

@@ -2,10 +2,18 @@
 var express = require('express');
 var http = require('http');
 var path = require('path');
+var bodyParser = require('body-parser');
 var socketio = require('socket.io');
 var Sync = require('./SyncNodeServer');
 var app = express();
 var server = http.createServer(app);
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 var io = socketio(server);
 var defaultRec = {
     lastModified: new Date().toISOString(),
@@ -26,6 +34,21 @@ var defaultRec = {
     }
 };
 var ReconciliationServer = new Sync.SyncNodeServer('reconciliation', io, defaultRec);
+var defaultKitchen = {
+    lastModified: new Date().toISOString(),
+    orders: {}
+};
+var KitchenServer = new Sync.SyncNodeServer('kitchen', io, defaultKitchen);
+app.use('/api/kitchen/orders', function (req, res, next) {
+    var order = req.body;
+    console.log('Adding Order: ', order);
+    var merge = { orders: {} };
+    merge.orders[order.key] = order;
+    KitchenServer.doMerge(KitchenServer.data, merge);
+    KitchenServer.persist();
+    KitchenServer.ioNamespace.emit('update', merge);
+    res.end('Ok');
+});
 var defaultDiagrams = {
     lastModified: new Date().toISOString(),
     diagrams: {
@@ -50,6 +73,7 @@ app.use('/', function (req, res, next) {
         res.write('    <link rel="stylesheet" type="text/css" href="/styles/site.css" />');
         res.write('  </head>');
         res.write('  <body>');
+        res.write('    <script src="/bower_components/moment/moment.js" data-main="scripts/App.js"></script>');
         res.write('    <script src="/bower_components/requirejs/require.js" data-main="scripts/App.js"></script>');
         res.write('  </body>');
         res.write('</html>');

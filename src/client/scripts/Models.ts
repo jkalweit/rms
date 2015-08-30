@@ -58,9 +58,35 @@ export interface Ticket extends ISyncObject {
 }
 
 export interface TicketItem extends ISyncObject {
-    key?: string;
     name?: string;
     price?: number;
     quantity?: number;
     note?: string;
+}
+
+export interface  Kitchen {
+    orders?: {[key: string]: KitchenOrder};
+}
+export interface KitchenOrder extends ISyncObject {
+    key?: string;
+    name?: string;
+    isTogo?: boolean;
+    submittedAt?: Date;
+    completedAt?: Date;
+    items?: {[key: string]: KitchenOrderItem}
+}
+export interface KitchenOrderItem extends ISyncObject {
+    key?: string;
+    description?: string;
+    note?: string;
+    type?: string;
+    prepType?: string;
+    quantity?: number;
+    options?: {[key: string]: KitchenOrderItemOption}
+}
+export interface KitchenOrderItemOption extends ISyncObject {
+    key?: string;
+    description?: string;
+    type?: string;
+    prepType?: string;
 }

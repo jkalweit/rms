@@ -4,7 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation', './Logger', './Reconciliation', './Menu', './Flow'], function (require, exports, React, Sync, Nav, Logger, Rec, Menu, Flow) {
+define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation', './Logger', './Reconciliation', './Menu', './Kitchen', './Flow'], function (require, exports, React, Sync, Nav, Logger, Rec, Menu, Kitchen, Flow) {
     'use strict';
     var Bootstrap = (function () {
         function Bootstrap() {
@@ -23,6 +23,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
             _super.call(this, props);
             var recSync = this.startReconciliationConnection();
             var flowSync = this.startFlowDiagramsConnection();
+            var kitchenSync = this.startKitchenConnection();
             window.addEventListener('hashchange', function () {
                 console.log('hashchange!', location.hash);
                 _this.setState({ nav: _this.parseHash() });
@@ -30,6 +31,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
             this.state = {
                 reconciliation: recSync.get(),
                 diagrams: flowSync.get(),
+                kitchen: kitchenSync.get(),
                 isNavOpen: false,
                 syncSocketStatus: recSync.status,
                 nav: this.parseHash()
@@ -90,12 +92,21 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
                 }
             };
             var sync = new Sync.SyncNodeSocket('/flowdiagrams', defaultDiagrams);
-            sync.onStatusChanged = function (path, status) {
-                _this.setState({ syncSocketStatus: status });
-            };
             sync.onUpdated(function (updated) {
                 console.log('updated Diagrams!', updated);
                 _this.setState({ diagrams: updated });
+            });
+            return sync;
+        };
+        MainView.prototype.startKitchenConnection = function () {
+            var _this = this;
+            var defaultKitchen = {
+                orders: {}
+            };
+            var sync = new Sync.SyncNodeSocket('/kitchen', defaultKitchen);
+            sync.onUpdated(function (updated) {
+                console.log('updated Kitchen!', updated);
+                _this.setState({ kitchen: updated });
             });
             return sync;
         };
@@ -115,7 +126,7 @@ define(["require", "exports", 'react/addons', './SyncNodeSocket', './Navigation'
                 view = (React.createElement(Menu.MenuEdit, {"menu": this.state.reconciliation.menu}));
             }
             else if (hash == "#kitchen") {
-                view = (React.createElement("div", null, React.createElement("h1", null, "The kitchen!")));
+                view = (React.createElement(Kitchen.KitchenOrdersView, {"orders": this.state.kitchen.orders}));
             }
             else {
                 view = (React.createElement("div", null, React.createElement(LogView, {"ref": "logView"})));
