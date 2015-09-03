@@ -28,6 +28,7 @@ export class SyncNodeServer {
   io: SocketIO.Server;
   ioNamespace: SocketIO.Namespace;
   data: any;
+  onMerge: (merge: any) => void;
 
   constructor(namespace: string, io: SocketIO.Server, defaultData: any = {}) {
     this.namespace  = namespace;
@@ -40,9 +41,6 @@ export class SyncNodeServer {
     });
   }
 
-  handleUpdate() {
-
-  }
   doMerge(obj: Object, merge: any) {
       //console.log('Doing merge: ', merge);
       if (typeof merge !== 'object') return merge;
@@ -50,7 +48,9 @@ export class SyncNodeServer {
           if(key === 'lastModified' && obj[key] > merge[key]) {
             console.error('Server version lastModified GREATER THAN merge lastModified', obj[key], merge[key]);
           }
-          if (key === '__remove') {
+          if(key === 'meta') {
+            //ignore
+          } else if (key === '__remove') {
               delete obj[merge[key]];
           } else {
               var nextObj = obj[key] || {};
@@ -90,7 +90,9 @@ export class SyncNodeServer {
             this.persist();
             socket.emit('updateResponse', new Response(request.requestGuid, null));
             socket.broadcast.emit('update', merge);
-            //this.ioNamespace.emit('update', merge); // TODO: This was a hack to make sync work.
+
+            // notify listener
+            if(this.onMerge) this.onMerge(merge);
         });
     });
   }

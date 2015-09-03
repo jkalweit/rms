@@ -47,6 +47,7 @@ app.use('/api/kitchen/orders', function (req, res, next) {
     KitchenServer.doMerge(KitchenServer.data, merge);
     KitchenServer.persist();
     KitchenServer.ioNamespace.emit('update', merge);
+    KitchenServer.ioNamespace.emit('newKitchenOrder', merge);
     res.end('Ok');
 });
 var defaultDiagrams = {

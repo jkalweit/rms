@@ -20,8 +20,6 @@ var SyncNodeServer = (function () {
             _this.start();
         });
     }
-    SyncNodeServer.prototype.handleUpdate = function () {
-    };
     SyncNodeServer.prototype.doMerge = function (obj, merge) {
         var _this = this;
         if (typeof merge !== 'object')
@@ -30,7 +28,9 @@ var SyncNodeServer = (function () {
             if (key === 'lastModified' && obj[key] > merge[key]) {
                 console.error('Server version lastModified GREATER THAN merge lastModified', obj[key], merge[key]);
             }
-            if (key === '__remove') {
+            if (key === 'meta') {
+            }
+            else if (key === '__remove') {
                 delete obj[merge[key]];
             }
             else {
@@ -64,6 +64,8 @@ var SyncNodeServer = (function () {
                 _this.persist();
                 socket.emit('updateResponse', new Response(request.requestGuid, null));
                 socket.broadcast.emit('update', merge);
+                if (_this.onMerge)
+                    _this.onMerge(merge);
             });
         });
     };

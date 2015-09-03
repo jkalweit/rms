@@ -140,6 +140,9 @@ export class MainView extends React.Component<{}, MainViewState> {
           console.log('updated Kitchen!', updated);
           this.setState({ kitchen: updated });
       });
+      sync.server.on('newKitchenOrder', (merge: any) => {
+          React.findDOMNode(this.refs['newKitchenOrderSound'])['play']();
+      });
       return sync;
     }
     render() {
@@ -180,6 +183,7 @@ export class MainView extends React.Component<{}, MainViewState> {
 
         return (
             <div>
+            <audio ref="newKitchenOrderSound" src="/content/audio/bell.mp3" preload="auto"></audio>
             <div className={headerClassName}>
               <ul className={className}>
                 <li className="hamburger-icon" onClick={() => { this.setState({ isNavOpen: !this.state.isNavOpen }) } }><span className="col-2 fa fa-bars"></span></li>

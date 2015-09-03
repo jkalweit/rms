@@ -73,6 +73,7 @@ export interface KitchenOrder extends ISyncObject {
     isTogo?: boolean;
     submittedAt?: Date;
     completedAt?: Date;
+    clearedAt?: Date;
     items?: {[key: string]: KitchenOrderItem}
 }
 export interface KitchenOrderItem extends ISyncObject {

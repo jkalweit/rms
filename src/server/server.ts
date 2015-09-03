@@ -55,13 +55,13 @@ var ReconciliationServer = new Sync.SyncNodeServer('reconciliation', io, default
 
 
 
-
 var defaultKitchen = {
     lastModified: new Date().toISOString(),
     orders: {}
 };
 
 var KitchenServer = new Sync.SyncNodeServer('kitchen', io, defaultKitchen);
+
 
 // REST API for Kitchen
     app.use('/api/kitchen/orders', (req: any, res: any, next: any) => {
@@ -72,6 +72,7 @@ var KitchenServer = new Sync.SyncNodeServer('kitchen', io, defaultKitchen);
             KitchenServer.doMerge(KitchenServer.data, merge);
             KitchenServer.persist();
             KitchenServer.ioNamespace.emit('update', merge);
+            KitchenServer.ioNamespace.emit('newKitchenOrder', merge);
             res.end('Ok');
         });
 

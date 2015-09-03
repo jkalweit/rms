@@ -10,38 +10,72 @@ import Models = require('./Models');
 
 
 export interface KitchenOrdersViewProps {
-  orders: {[key: string]: Models.KitchenOrder};
+    orders: { [key: string]: Models.KitchenOrder };
 }
-export class KitchenOrdersView extends Base.SyncView<KitchenOrdersViewProps, {}> {
+export interface KitchenOrdersViewState {
+    showCleared: boolean;
+}
+export class KitchenOrdersView extends Base.SyncView<KitchenOrdersViewProps, KitchenOrdersViewState> {
     constructor(props: KitchenOrdersViewProps) {
         super(props);
+        this.state = { showCleared: false };
         // this.state.isDisabled = true;
         // this.subscribe('inserted', (data: any) => {
         //     React.findDOMNode(this.refs['newOrderSound'])['play']();
         // });
     }
-    // handleComplete(entity) {
-    //     entity.completedAt = (new Date()).toISOString();
-    //     React.findDOMNode(this.refs['orderCompletedSound'])['play']();
-    //     this.update(entity);
-    // }
+    handleCompleted() {
+        React.findDOMNode(this.refs['orderCompletedSound'])['play']();
+    }
     // handleAcknowledge(entity) {
     //     entity.acknowledgedAt = (new Date()).toISOString();
     //     this.update(entity);
     // }
+    clearCompleted() {
+        if (confirm('Are you sure you want to clear all completed orders?')) {
+            var ordersArray = Utils.toArray(this.props.orders);
+            ordersArray.forEach(order => {
+                if (order.completedAt && !order.clearedAt) {
+                    (order as Sync.ISyncNode).set('clearedAt', new Date().toISOString());
+                }
+            });
+        }
+    }
     render() {
+        function compareKeyMilli(a: Models.KitchenOrder, b: Models.KitchenOrder) {
+            var a_milli = moment(a.key).valueOf();
+            var b_milli = moment(b.key).valueOf();
+            if (a_milli < b_milli) return -1;
+            if (a_milli > b_milli) return 1;
+            return 0;
+        }
+
         var ordersArray = Utils.toArray(this.props.orders);
-        var nodes = ordersArray.map((order: Models.KitchenOrder) => {
+
+        if(!this.state.showCleared) {
+          var ordersArray = ordersArray.filter((order: Models.KitchenOrder) => {
+            return !order.clearedAt;
+          });
+        }
+
+        var nodes = ordersArray.sort(compareKeyMilli).map((order: Models.KitchenOrder) => {
             return (
-                <KitchenOrderDetailsView key={order.key} order={order}></KitchenOrderDetailsView>
+                <KitchenOrderDetailsView key={order.key} order={order} onCompleted={this.handleCompleted.bind(this) }></KitchenOrderDetailsView>
             );
         });
 
+        var clearCompletedStyle = {
+            float: 'right'
+        };
+
         return (
             <div>
-              <audio ref="newOrderSound" src="/content/audio/bell.mp3" preload="auto"></audio>
               <audio ref="orderCompletedSound" src="/content/audio/tada.mp3" preload="auto"></audio>
-              <h2>Kitchen Orders</h2>
+              <div>
+                <button style={clearCompletedStyle} onClick={() => { this.setState({ showCleared: !this.state.showCleared }); }}>{ this.state.showCleared ? 'HIDE CLEARED ORDERS' : 'Show Cleared Orders' }</button>
+                <button style={clearCompletedStyle} onClick={this.clearCompleted.bind(this) }>Clear Completed Orders</button>
+                <h2>Kitchen Orders</h2>
+              </div>
               {nodes}
             </div>
         );
@@ -54,6 +88,7 @@ export class KitchenOrdersView extends Base.SyncView<KitchenOrdersViewProps, {}>
 export interface KitchenOrderDetailsViewProps {
     key: string;
     order: Models.KitchenOrder;
+    onCompleted: () => void;
 }
 export interface KitchenOrderDetailsViewState {
     timeElapsed?: string;
@@ -61,6 +96,7 @@ export interface KitchenOrderDetailsViewState {
 export interface KitchenOrderDetailsViewState {
     isNew?: boolean;
     isComplete?: boolean;
+    isCleared?: boolean;
 }
 export class KitchenOrderDetailsView extends Base.SyncView<KitchenOrderDetailsViewProps, KitchenOrderDetailsViewState> {
     private interval: number;
@@ -69,6 +105,7 @@ export class KitchenOrderDetailsView extends Base.SyncView<KitchenOrderDetailsVi
         this.state = {
             isNew: true,
             isComplete: this.props.order.completedAt ? true : false,
+            isCleared: this.props.order.clearedAt ? true : false,
             timeElapsed: this.formatElapsedTime()
         };
     }
@@ -102,6 +139,7 @@ export class KitchenOrderDetailsView extends Base.SyncView<KitchenOrderDetailsVi
             // this.props.onComplete(this.props.entity);
             this.setState({ isComplete: true });
             clearInterval(this.interval);
+            this.props.onCompleted();
             e.preventDefault();
         }
     }
@@ -189,6 +227,9 @@ export class KitchenOrderDetailsView extends Base.SyncView<KitchenOrderDetailsVi
             left: 0,
             display: this.state.isComplete ? 'block' : 'none'
         };
+        if(this.state.isCleared) {
+          disableStyle['boxShadow'] = '0px 0px 10px 5px #0000AA';
+        }
 
         var kitchenOrderStyle = {
             backgroundColor: this.state.isComplete ? '#DDDDDD' : '#FFFFFF',
@@ -214,8 +255,8 @@ export class KitchenOrderDetailsView extends Base.SyncView<KitchenOrderDetailsVi
 
 
 export interface KitchenOrderItemViewProps {
-  key?: string;
-  item?: Models.KitchenOrderItem;
+    key?: string;
+    item?: Models.KitchenOrderItem;
 }
 export class KitchenOrderItemView extends Base.SyncView<KitchenOrderItemViewProps, {}> {
     render() {
@@ -271,8 +312,8 @@ export class KitchenOrderItemView extends Base.SyncView<KitchenOrderItemViewProp
 }
 
 export interface KitchenOrderItemOptionProps {
-  key?: string;
-  option?: Models.KitchenOrderItemOption;
+    key?: string;
+    option?: Models.KitchenOrderItemOption;
 }
 export class KitchenOrderItemOptionView extends Base.SyncView<KitchenOrderItemOptionProps, any> {
     render() {

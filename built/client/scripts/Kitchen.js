@@ -9,13 +9,45 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
         __extends(KitchenOrdersView, _super);
         function KitchenOrdersView(props) {
             _super.call(this, props);
+            this.state = { showCleared: false };
         }
+        KitchenOrdersView.prototype.handleCompleted = function () {
+            React.findDOMNode(this.refs['orderCompletedSound'])['play']();
+        };
+        KitchenOrdersView.prototype.clearCompleted = function () {
+            if (confirm('Are you sure you want to clear all completed orders?')) {
+                var ordersArray = Utils.toArray(this.props.orders);
+                ordersArray.forEach(function (order) {
+                    if (order.completedAt && !order.clearedAt) {
+                        order.set('clearedAt', new Date().toISOString());
+                    }
+                });
+            }
+        };
         KitchenOrdersView.prototype.render = function () {
+            var _this = this;
+            function compareKeyMilli(a, b) {
+                var a_milli = moment(a.key).valueOf();
+                var b_milli = moment(b.key).valueOf();
+                if (a_milli < b_milli)
+                    return -1;
+                if (a_milli > b_milli)
+                    return 1;
+                return 0;
+            }
             var ordersArray = Utils.toArray(this.props.orders);
-            var nodes = ordersArray.map(function (order) {
-                return (React.createElement(KitchenOrderDetailsView, {"key": order.key, "order": order}));
+            if (!this.state.showCleared) {
+                var ordersArray = ordersArray.filter(function (order) {
+                    return !order.clearedAt;
+                });
+            }
+            var nodes = ordersArray.sort(compareKeyMilli).map(function (order) {
+                return (React.createElement(KitchenOrderDetailsView, {"key": order.key, "order": order, "onCompleted": _this.handleCompleted.bind(_this)}));
             });
-            return (React.createElement("div", null, React.createElement("audio", {"ref": "newOrderSound", "src": "/content/audio/bell.mp3", "preload": "auto"}), React.createElement("audio", {"ref": "orderCompletedSound", "src": "/content/audio/tada.mp3", "preload": "auto"}), React.createElement("h2", null, "Kitchen Orders"), nodes));
+            var clearCompletedStyle = {
+                float: 'right'
+            };
+            return (React.createElement("div", null, React.createElement("audio", {"ref": "orderCompletedSound", "src": "/content/audio/tada.mp3", "preload": "auto"}), React.createElement("div", null, React.createElement("button", {"style": clearCompletedStyle, "onClick": function () { _this.setState({ showCleared: !_this.state.showCleared }); }}, this.state.showCleared ? 'HIDE CLEARED ORDERS' : 'Show Cleared Orders'), React.createElement("button", {"style": clearCompletedStyle, "onClick": this.clearCompleted.bind(this)}, "Clear Completed Orders"), React.createElement("h2", null, "Kitchen Orders")), nodes));
         };
         return KitchenOrdersView;
     })(Base.SyncView);
@@ -27,6 +59,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
             this.state = {
                 isNew: true,
                 isComplete: this.props.order.completedAt ? true : false,
+                isCleared: this.props.order.clearedAt ? true : false,
                 timeElapsed: this.formatElapsedTime()
             };
         }
@@ -58,6 +91,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
                 this.props.order.set('completedAt', new Date().toISOString());
                 this.setState({ isComplete: true });
                 clearInterval(this.interval);
+                this.props.onCompleted();
                 e.preventDefault();
             }
         };
@@ -150,6 +184,9 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
                 left: 0,
                 display: this.state.isComplete ? 'block' : 'none'
             };
+            if (this.state.isCleared) {
+                disableStyle['boxShadow'] = '0px 0px 10px 5px #0000AA';
+            }
             var kitchenOrderStyle = {
                 backgroundColor: this.state.isComplete ? '#DDDDDD' : '#FFFFFF',
             };

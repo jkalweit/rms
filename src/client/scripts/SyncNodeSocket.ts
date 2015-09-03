@@ -38,7 +38,7 @@ interface Response {
 
 export class SyncNodeSocket<T> {
     private path: string;
-    private server: SocketIO.Server;
+    server: SocketIO.Server;
     private listeners: any[] = [];
     private syncNode: Sync.SyncNode;
     status: string;
