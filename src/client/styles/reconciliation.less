@@ -97,6 +97,7 @@
     left: 205px; width: 300px;
     background-color: #FFFFFF;
     margin: 10px;
+    border: 1px solid @mdc-black-light;
     //box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
 
     .ticket-footer {
@@ -138,10 +139,6 @@
         padding: 10px;
         border-bottom: 1px solid @mdc-black-lighter;
 
-        &:hover {
-          color: #FFFFFF;
-          background-color: @mdc-purple-300;
-        }
 
         &:active, &.active {
           color: #FFFFFF;
@@ -150,18 +147,46 @@
 
         .quantity, .name {
           float: left;
+          display: block;
           padding-right: 5px;
+          color: @mdc-black-darker;
+        }
+        .name {
+          min-width: 200px;
         }
         .quantity {
+          display: block;
           width: 2em;
           min-height: 1px;
         }
         .price {
+          display: block;
           float: right;
         }
         .note {
+          display: block;
           clear: both;
+          font-style: italic;
+          margin-left: 2em;
         }
+
+        textarea {
+          background: none;
+          border: none;
+          border-bottom: 1px solid #ccc;
+          color: inherit;
+          font: inherit;
+          font-weight: inherit;
+          transition: all 0.3s;
+          resize: none;
+        }
+        textarea:focus,
+        textarea.focus {
+          background-color: #FFF;
+          color: @mdc-black-darker;
+          border-bottom: 1px solid #000;
+        }
+
       }
     }
   }

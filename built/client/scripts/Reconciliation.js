@@ -4,7 +4,8 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'], function (require, exports, React, Base, Menu, Utils) {
+define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils', './SmartInput'], function (require, exports, React, Base, Menu, Utils, SmartInputRef) {
+    var SmartInput = SmartInputRef.SmartInput;
     var ReconciliationView = (function (_super) {
         __extends(ReconciliationView, _super);
         function ReconciliationView(props) {
@@ -155,9 +156,14 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
                 return (React.createElement(TicketItem, {"key": item.key, "item": item, "onSelect": function (item) { _this.setState({ selectedItem: item }); _this.refs['ticketItemEditModal'].show(); }}));
             });
             var totals = Utils.ticketTotals(this.props.ticket);
-            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("h3", null, ticket.name, React.createElement("button", {"onClick": function () { if (confirm('Remove?'))
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("h3", null, React.createElement(SmartInput, {"model": this.props.ticket, "modelProp": "name"}), React.createElement("button", {"onClick": function () { if (confirm('Remove?'))
                 _this.props.onRemove(_this.props.ticket); }}, "X")), React.createElement("ul", null, nodes), React.createElement("div", {"className": "ticket-footer"}, React.createElement("button", {"onClick": function () { ticket.set('isPaid', !ticket.isPaid); }}, ticket.isPaid ? 'Paid' : 'Open'), React.createElement("div", {"className": "total"}, "Total: ", Utils.formatCurrency(totals.total))), React.createElement(Base.ModalView, {"ref": "ticketItemEditModal"}, this.state.selectedItem ? (React.createElement(TicketItemEdit, {"item": this.state.selectedItem, "onSave": function (item) {
                 _this.props.ticket.items.set(item.key, item);
+                _this.refs['ticketItemEditModal'].hide();
+            }, "onCancel": function () {
+                _this.refs['ticketItemEditModal'].hide();
+            }, "onRemove": function (key) {
+                _this.props.ticket.items.remove(key);
                 _this.refs['ticketItemEditModal'].hide();
             }})) : null)));
         };
@@ -174,7 +180,9 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
             var _this = this;
             var classNames = this.preRender();
             var item = this.props.item;
-            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(_this.props.item); }}, React.createElement("span", {"className": "quantity"}, item.quantity), React.createElement("span", {"className": "name"}, item.name), React.createElement("span", {"className": "price"}, Utils.formatCurrency(Utils.ticketItemTotals(item).total)), React.createElement("span", {"className": "note"}, item.note)));
+            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(_this.props.item); }}, React.createElement(SmartInput, {"className": "quantity", "model": item, "modelProp": "quantity", "isNumber": true}), React.createElement("span", {"className": "name"}, item.name), React.createElement("span", {"className": "price"}, Utils.formatCurrency(Utils.ticketItemTotals(item).total)), this.props.item.note && this.props.item.note !== '' ?
+                React.createElement(SmartInput, {"className": "note", "model": item, "modelProp": "note", "isMultiline": true})
+                : null));
         };
         return TicketItem;
     })(Base.SyncView);
@@ -184,24 +192,34 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
         function TicketItemEdit(props) {
             _super.call(this, props);
             this.name = '          TicketItemEdit';
-            this.state = {
-                mutable: JSON.parse(JSON.stringify(props.item)),
+            this.state = this.getState(props.item);
+        }
+        TicketItemEdit.prototype.componentWillReceiveProps = function (props) {
+            if (props.item !== this.props.item) {
+                this.setState(this.getState(props.item));
+            }
+        };
+        TicketItemEdit.prototype.getState = function (item) {
+            return {
+                mutable: JSON.parse(JSON.stringify(item)),
                 isNew: false,
                 isDirty: false
             };
-        }
+        };
         TicketItemEdit.prototype.save = function () {
             this.props.onSave(this.state.mutable);
         };
         TicketItemEdit.prototype.cancel = function () {
+            this.props.onCancel();
         };
         TicketItemEdit.prototype.remove = function () {
+            this.props.onRemove(this.props.item.key);
         };
         TicketItemEdit.prototype.render = function () {
             var _this = this;
             var classNames = this.preRender(['ticket-item-details']);
             var item = this.props.item;
-            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("input", {"value": this.state.mutable.quantity, "onChange": this.handleChange.bind(this, 'mutable', 'quantity')}), React.createElement("input", {"value": this.state.mutable.name, "onChange": this.handleChange.bind(this, 'mutable', 'name')}), React.createElement("input", {"value": this.state.mutable.price, "onChange": this.handleChange.bind(this, 'mutable', 'price')}), React.createElement("input", {"value": this.state.mutable.note, "onChange": this.handleChange.bind(this, 'mutable', 'note')}), React.createElement(Base.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.state.isNew ? null : this.remove.bind(this), "isDirty": this.state.isDirty})));
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("div", {"className": "input-field"}, React.createElement("span", {"className": "label"}, "Quantity"), React.createElement("input", {"value": this.state.mutable.quantity, "onChange": this.handleChange.bind(this, 'mutable', 'quantity')})), React.createElement("div", {"className": "input-field"}, React.createElement("span", {"className": "label"}, "Name"), React.createElement("input", {"value": this.state.mutable.name, "onChange": this.handleChange.bind(this, 'mutable', 'name')})), React.createElement("div", {"className": "input-field"}, React.createElement("span", {"className": "label"}, "Price"), React.createElement("input", {"value": this.state.mutable.price, "onChange": this.handleChange.bind(this, 'mutable', 'price')})), React.createElement("div", {"className": "input-field"}, React.createElement("span", {"className": "label"}, "Note"), React.createElement("textarea", {"value": this.state.mutable.note, "rows": 8, "onChange": this.handleChange.bind(this, 'mutable', 'note')})), React.createElement(Base.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.state.isNew ? null : this.remove.bind(this), "isDirty": this.state.isDirty})));
         };
         return TicketItemEdit;
     })(Base.SyncView);

@@ -24,6 +24,7 @@
         "./Menu.tsx",
         "./Navigation.tsx",
         "./Reconciliation.tsx",
+        "./SmartInput.tsx",
         "./Views.tsx"
     ]
 }

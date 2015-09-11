@@ -7,6 +7,9 @@ import Base = require('./BaseViews');
 import Menu = require('./Menu');
 import Sync = require('./SyncNode');
 import Utils = require('./Utils');
+import SmartInputRef = require('./SmartInput');
+
+var SmartInput = SmartInputRef.SmartInput;
 
 export interface ReconciliationViewProps {
     reconciliation: Models.Reconciliation;
@@ -54,6 +57,7 @@ export class ReconciliationView extends Base.SyncView<ReconciliationViewProps, R
             onSelectTicket={ this.handleSelectTicket.bind(this) }
             selectedTicket={ this.state.selectedTicket }></Tickets>
             { this.state.selectedTicket ? (<TicketDetails ticket={this.state.selectedTicket} onRemove={ (ticket: Models.Ticket) => { (this.props.reconciliation.tickets as any).remove(ticket.key); this.setState({ selectedTicket: null }); } }></TicketDetails>) : null }
+
             <Menu.Menu menu={this.props.reconciliation.menu} onItemSelected={ this.handleSelectMenuItem.bind(this) }></Menu.Menu>
             </div>
         );
@@ -223,7 +227,7 @@ export class TicketDetails extends Base.SyncView<TicketDetailsProps, TicketDetai
 
         return (
             <div className={classNames.join(' ') }>
-              <h3>{ticket.name} <button onClick={() => { if (confirm('Remove?')) this.props.onRemove(this.props.ticket); } }>X</button></h3>
+              <h3><SmartInput model={this.props.ticket} modelProp="name" /><button onClick={() => { if (confirm('Remove?')) this.props.onRemove(this.props.ticket); } }>X</button></h3>
               <ul>
                 { nodes }
               </ul>
@@ -234,7 +238,6 @@ export class TicketDetails extends Base.SyncView<TicketDetailsProps, TicketDetai
                 </div>
               </div>
 
-
               <Base.ModalView ref="ticketItemEditModal">
 
                 {
@@ -243,6 +246,13 @@ export class TicketDetails extends Base.SyncView<TicketDetailsProps, TicketDetai
                     item={this.state.selectedItem}
                     onSave={(item: Models.TicketItem) => {
                       (this.props.ticket.items as Sync.ISyncNode).set(item.key, item);
+                      (this.refs['ticketItemEditModal'] as Base.ModalView).hide();
+                    }}
+                    onCancel={() => {
+                      (this.refs['ticketItemEditModal'] as Base.ModalView).hide();
+                    }}
+                    onRemove={(key: string) => {
+                      (this.props.ticket.items as Sync.ISyncNode).remove(key);
                       (this.refs['ticketItemEditModal'] as Base.ModalView).hide();
                     }}
                     ></TicketItemEdit>
@@ -258,6 +268,9 @@ export class TicketDetails extends Base.SyncView<TicketDetailsProps, TicketDetai
 }
 
 
+
+
+
 export interface TicketItemProps {
     key: string;
     item: Models.TicketItem;
@@ -270,10 +283,13 @@ export class TicketItem extends Base.SyncView<TicketItemProps, {}> {
         var item = this.props.item;
         return (
             <li className={classNames.join(' ')} onClick={() => { this.props.onSelect(this.props.item); }}>
-              <span className="quantity">{item.quantity}</span>
+              <SmartInput className="quantity" model={item} modelProp="quantity" isNumber />
               <span className="name">{item.name}</span>
               <span className="price">{ Utils.formatCurrency(Utils.ticketItemTotals(item).total) }</span>
-              <span className="note">{item.note}</span>
+              { this.props.item.note && this.props.item.note !== '' ?
+                  <SmartInput className="note" model={item} modelProp="note" isMultiline />
+                  : null
+              }
             </li>
         );
     }
@@ -281,7 +297,8 @@ export class TicketItem extends Base.SyncView<TicketItemProps, {}> {
 
 export interface TicketItemEditProps {
     item: Models.TicketItem;
-    //onRemove: (item: Models.TicketItem) => void;
+    onRemove: (key: string) => void;
+    onCancel: () => void;
     onSave: (item: Models.TicketItem) => void;
 }
 export interface TicketItemEditState extends Base.SyncViewState {
@@ -291,30 +308,50 @@ export class TicketItemEdit extends Base.SyncView<TicketItemEditProps, TicketIte
     name: string = '          TicketItemEdit';
     constructor(props: TicketItemEditProps) {
         super(props);
-        this.state = {
-            mutable: JSON.parse(JSON.stringify(props.item)),
-            isNew: false,
-            isDirty: false
-        };
+        this.state = this.getState(props.item);
+    }
+    componentWillReceiveProps(props: TicketItemEditProps) {
+        if(props.item !== this.props.item) {
+            this.setState(this.getState(props.item));
+        }
+    }
+    getState(item: Models.TicketItem): TicketItemEditState {
+      return {
+          mutable: JSON.parse(JSON.stringify(item)),
+          isNew: false,
+          isDirty: false
+      };
     }
     save() {
       this.props.onSave(this.state.mutable);
     }
     cancel() {
-
+      this.props.onCancel();
     }
     remove() {
-
+      this.props.onRemove(this.props.item.key);
     }
     render() {
         var classNames = this.preRender(['ticket-item-details']);
         var item = this.props.item;
         return (
             <div className={classNames.join(' ') }>
-              <input value={this.state.mutable.quantity as any} onChange={ this.handleChange.bind(this, 'mutable', 'quantity') } />
-              <input value={this.state.mutable.name} onChange={ this.handleChange.bind(this, 'mutable', 'name') } />
-              <input value={this.state.mutable.price as any} onChange={ this.handleChange.bind(this, 'mutable', 'price') } />
-              <input value={this.state.mutable.note} onChange={ this.handleChange.bind(this, 'mutable', 'note') } />
+              <div className="input-field">
+                <span className="label">Quantity</span>
+                <input value={this.state.mutable.quantity as any} onChange={ this.handleChange.bind(this, 'mutable', 'quantity') } />
+              </div>
+              <div className="input-field">
+                <span className="label">Name</span>
+                <input value={this.state.mutable.name} onChange={ this.handleChange.bind(this, 'mutable', 'name') } />
+              </div>
+              <div className="input-field">
+                <span className="label">Price</span>
+                <input value={this.state.mutable.price as any} onChange={ this.handleChange.bind(this, 'mutable', 'price') } />
+              </div>
+              <div className="input-field">
+                <span className="label">Note</span>
+                <textarea value={this.state.mutable.note} rows={8} onChange={ this.handleChange.bind(this, 'mutable', 'note') } />
+              </div>
               <Base.SimpleConfirmView
               onCancel={() => { this.cancel() } }
               onSave={() => { this.save() } }

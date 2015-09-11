@@ -5,6 +5,11 @@
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
+.clear-fix {
+  content: "";
+  display: table;
+  clear: both;
+}
 .group:after {
   content: "";
   display: table;
@@ -344,6 +349,35 @@ button {
 .log-view ul li .path {
   padding-right: 5px;
   color: #1976d2;
+}
+input[type="text"] {
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.26);
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  transition: all 0.3s;
+}
+input[type="text"]:focus,
+input[type="text"].focus {
+  background-color: #FFF;
+  color: rgba(0, 0, 0, 0.87);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.87);
+}
+.input-field .label {
+  display: block;
+  float: left;
+  width: 25%;
+}
+.input-field input {
+  float: left;
+  width: 75%;
+}
+.input-field:after {
+  content: "";
+  display: table;
+  clear: both;
 }
 .menu,
 .menu-edit {
@@ -720,6 +754,7 @@ button {
   width: 300px;
   background-color: #FFFFFF;
   margin: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.26);
 }
 .reconciliation .ticket-details .ticket-footer {
   position: absolute;
@@ -757,10 +792,6 @@ button {
   padding: 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
-.reconciliation .ticket-details ul li:hover {
-  color: #FFFFFF;
-  background-color: #ba68c8;
-}
 .reconciliation .ticket-details ul li:active,
 .reconciliation .ticket-details ul li.active {
   color: #FFFFFF;
@@ -769,17 +800,43 @@ button {
 .reconciliation .ticket-details ul li .quantity,
 .reconciliation .ticket-details ul li .name {
   float: left;
+  display: block;
   padding-right: 5px;
+  color: rgba(0, 0, 0, 0.87);
+}
+.reconciliation .ticket-details ul li .name {
+  min-width: 200px;
 }
 .reconciliation .ticket-details ul li .quantity {
+  display: block;
   width: 2em;
   min-height: 1px;
 }
 .reconciliation .ticket-details ul li .price {
+  display: block;
   float: right;
 }
 .reconciliation .ticket-details ul li .note {
+  display: block;
   clear: both;
+  font-style: italic;
+  margin-left: 2em;
+}
+.reconciliation .ticket-details ul li textarea {
+  background: none;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  transition: all 0.3s;
+  resize: none;
+}
+.reconciliation .ticket-details ul li textarea:focus,
+.reconciliation .ticket-details ul li textarea.focus {
+  background-color: #FFF;
+  color: rgba(0, 0, 0, 0.87);
+  border-bottom: 1px solid #000;
 }
 .reconciliation .ticket-item-details {
   position: relative;

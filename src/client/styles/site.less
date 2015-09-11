@@ -15,11 +15,14 @@
 }
 
 
-
-.group:after {
+.clear-fix {
   content: "";
   display: table;
   clear: both;
+}
+
+.group:after {
+  .clear-fix;
 }
 
 .flash {
@@ -337,6 +340,37 @@ input, textarea, keygen, select, button {
       }
     }
   }
+}
+
+input[type="text"] {
+  background: none;
+  border: none;
+  border-bottom: 1px solid @mdc-black-light;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  transition: all 0.3s;
+}
+input[type="text"]:focus,
+input[type="text"].focus {
+  background-color: #FFF;
+  color: @mdc-black-darker;
+  border-bottom: 1px solid @mdc-black-darker;
+}
+
+.input-field {
+  .label {
+    display: block;
+    float: left;
+    width: 25%;
+  }
+  input {
+    float: left;
+    width: 75%;
+  }
+}
+.input-field:after {
+  .clear-fix;
 }
 
 @import "menu";

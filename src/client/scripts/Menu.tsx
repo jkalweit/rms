@@ -6,6 +6,7 @@ import Models = require('./Models');
 import Sync = require('./SyncNode');
 import bv = require('./BaseViews');
 import Utils = require('./Utils');
+import SmartInput = require('./SmartInput');
 
 
 export interface MenuEditProps {
@@ -229,11 +230,14 @@ export class MenuCategoryEdit extends bv.SyncView<MenuCategoryEditProps, MenuCat
     }
     save() {
         this.state.mutable.lastModified = new Date().toISOString();
+        console.log('mutable', this.state.mutable);
         this.props.onSave(this.state.mutable);
         //Store.menuCategoryUpdate(this.state.mutable, (newImmutable) => { this.props.onSaved(newImmutable); });
     }
     remove() {
+      if(confirm('Delete this category and all items?')) {
         this.props.onRemove(this.props.category.key);
+      }
         //Store.menuCategoryRemove(this.props.category.key, () => { this.props.onRemoved(); });
     }
     render() {
@@ -251,6 +255,8 @@ export class MenuCategoryEdit extends bv.SyncView<MenuCategoryEditProps, MenuCat
                 </select>
                 <br />
                 <p><span className="col-4">Name: </span> <input className="col-6" ref="name" value={ mutable.name } onChange={ this.handleChange.bind(this, 'mutable', 'name') } /></p>
+                <p><span className="col-4">Default Tax: </span> <SmartInput.SmartInput className="col-2" model={mutable} modelProp="defaultTax"
+                onSave={(value: string): boolean => { this.state.mutable.defaultTax = parseFloat(value); return false; }} /></p>
                 <p><span className="col-4">Note: </span> <input className="col-10" value={ mutable.note } onChange={ this.handleChange.bind(this, 'mutable', 'note') } /></p>
                 <bv.SimpleConfirmView
                 onCancel={() => { this.cancel() } }

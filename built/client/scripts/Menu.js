@@ -5,7 +5,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './BaseViews', './Utils'], function (require, exports, React, bv, Utils) {
+define(["require", "exports", 'react/addons', './BaseViews', './Utils', './SmartInput'], function (require, exports, React, bv, Utils, SmartInput) {
     var MenuEdit = (function (_super) {
         __extends(MenuEdit, _super);
         function MenuEdit(props) {
@@ -153,16 +153,19 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
         };
         MenuCategoryEdit.prototype.save = function () {
             this.state.mutable.lastModified = new Date().toISOString();
+            console.log('mutable', this.state.mutable);
             this.props.onSave(this.state.mutable);
         };
         MenuCategoryEdit.prototype.remove = function () {
-            this.props.onRemove(this.props.category.key);
+            if (confirm('Delete this category and all items?')) {
+                this.props.onRemove(this.props.category.key);
+            }
         };
         MenuCategoryEdit.prototype.render = function () {
             var _this = this;
             var classNames = this.preRender(['menu-category-details']);
             var mutable = this.state.mutable;
-            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("h3", null, "Edit Category"), React.createElement("div", {"className": "inner"}, React.createElement("span", {"className": "col-4"}, "Type: "), React.createElement("select", {"className": "col-4", "ref": "type", "value": mutable.type, "onChange": this.handleChange.bind(this, 'mutable', 'type')}, React.createElement("option", null), React.createElement("option", null, "Food"), React.createElement("option", null, "Alcohol")), React.createElement("br", null), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Name: "), React.createElement("input", {"className": "col-6", "ref": "name", "value": mutable.name, "onChange": this.handleChange.bind(this, 'mutable', 'name')})), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Note: "), React.createElement("input", {"className": "col-10", "value": mutable.note, "onChange": this.handleChange.bind(this, 'mutable', 'note')})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.state.isNew ? null : this.remove.bind(this), "isDirty": this.state.isDirty}))));
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("h3", null, "Edit Category"), React.createElement("div", {"className": "inner"}, React.createElement("span", {"className": "col-4"}, "Type: "), React.createElement("select", {"className": "col-4", "ref": "type", "value": mutable.type, "onChange": this.handleChange.bind(this, 'mutable', 'type')}, React.createElement("option", null), React.createElement("option", null, "Food"), React.createElement("option", null, "Alcohol")), React.createElement("br", null), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Name: "), React.createElement("input", {"className": "col-6", "ref": "name", "value": mutable.name, "onChange": this.handleChange.bind(this, 'mutable', 'name')})), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Default Tax: "), React.createElement(SmartInput.SmartInput, {"className": "col-2", "model": mutable, "modelProp": "defaultTax", "onSave": function (value) { _this.state.mutable.defaultTax = parseFloat(value); return false; }})), React.createElement("p", null, React.createElement("span", {"className": "col-4"}, "Note: "), React.createElement("input", {"className": "col-10", "value": mutable.note, "onChange": this.handleChange.bind(this, 'mutable', 'note')})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.state.isNew ? null : this.remove.bind(this), "isDirty": this.state.isDirty}))));
         };
         return MenuCategoryEdit;
     })(bv.SyncView);
