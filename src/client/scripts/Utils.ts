@@ -48,3 +48,12 @@ export function ticketTotals(ticket: Models.Ticket): TicketTotals {
     });
     return totals;
 }
+
+
+export function snapToGrid(val: number, grid: number) {
+    var offset = val % grid;
+    if (offset < (grid / 2))
+        return val - offset;
+    else
+        return val + (grid - offset);
+}

@@ -43,5 +43,13 @@ define(["require", "exports"], function (require, exports) {
         return totals;
     }
     exports.ticketTotals = ticketTotals;
+    function snapToGrid(val, grid) {
+        var offset = val % grid;
+        if (offset < (grid / 2))
+            return val - offset;
+        else
+            return val + (grid - offset);
+    }
+    exports.snapToGrid = snapToGrid;
 });
 //# sourceMappingURL=Utils.js.map

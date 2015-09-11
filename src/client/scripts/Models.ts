@@ -15,17 +15,23 @@ export interface FlowDiagram extends ISyncObject {
     key: string;
     name: string;
     items: { [key: string]: FlowDiagramItem };
+    arrows: { [key: string]: FlowDiagramArrow };
 }
 export interface FlowDiagramItem extends ISyncObject {
     key: string;
     text: string;
     position: {x: number, y: number};
-    x: number;
-    y: number;
     width: number;
     height: number;
 }
 
+export interface FlowDiagramArrow extends ISyncObject {
+    key: string;
+    position: {x: number, y: number};
+    width: number;
+    height: number;
+    text: string;
+}
 
 
 
