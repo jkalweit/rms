@@ -29,16 +29,18 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.formatCurrency = formatCurrency;
     function ticketItemTotals(item) {
-        var totals = { total: 0 };
-        totals.total = item.price * item.quantity;
+        var totals = { food: 0, tax: 0, bar: 0, total: 0 };
+        var subTotal = item.quantity * item.price;
+        if (item.type === 'Food')
+            totals.total = item.price * item.quantity;
         return totals;
     }
     exports.ticketItemTotals = ticketItemTotals;
     function ticketTotals(ticket) {
-        var totals = { total: 0 };
+        var totals = { food: 0, tax: 0, bar: 0, total: 0 };
         var items = toArray(ticket.items);
         items.forEach(function (item) {
-            totals.total += ticketItemTotals(item).total;
+            totals.food += ticketItemTotals(item).total;
         });
         return totals;
     }

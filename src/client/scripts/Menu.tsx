@@ -36,7 +36,7 @@ export class MenuEdit extends bv.SyncView<MenuEditProps, MenuEditState> {
     }
     newCategory() {
         var mutable = {
-            type: 'Food',
+            defaultType: 'Food',
             name: '',
             note: '',
             items: {}
@@ -48,6 +48,7 @@ export class MenuEdit extends bv.SyncView<MenuEditProps, MenuEditState> {
     newItem() {
         var mutable = {
             name: '',
+            type: this.state.selectedCategory.defaultType,
             tax: this.state.selectedCategory.defaultTax,
             price: 0
         } as Models.MenuItem;
@@ -249,7 +250,7 @@ export class MenuCategoryEdit extends bv.SyncView<MenuCategoryEditProps, MenuCat
             <div className={classNames.join(' ')}>
               <h3>Edit Category</h3>
               <div className="inner">
-                <span className="col-4">Type: </span> <select className="col-4" ref="type" value={mutable.type} onChange={ this.handleChange.bind(this, 'mutable', 'type') } >
+                <span className="col-4">Type: </span> <select className="col-4" value={mutable.defaultType} onChange={ this.handleChange.bind(this, 'mutable', 'defaultType') } >
                     <option></option>
                     <option>Food</option>
                     <option>Alcohol</option>

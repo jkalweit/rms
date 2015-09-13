@@ -31,6 +31,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
                 var ticketItem = {
                     key: new Date().toISOString(),
                     name: item.name,
+                    type: item.type,
                     price: item.price,
                     tax: item.tax,
                     quantity: 1

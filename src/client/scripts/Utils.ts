@@ -32,19 +32,24 @@ export interface TicketItemTotals {
   total: number;
 }
 export function ticketItemTotals(item: Models.TicketItem): TicketItemTotals {
-    var totals = { total: 0 };
+    var totals = { food: 0, tax: 0, bar: 0, total: 0 };
+    var subTotal = item.quantity * item.price;
+    if(item.type === 'Food')
     totals.total = item.price * item.quantity;
     return totals;
 }
 
 export interface TicketTotals {
+  food: number;
+  tax: number;
+  bar: number;
   total: number;
 }
 export function ticketTotals(ticket: Models.Ticket): TicketTotals {
-    var totals = { total: 0 };
+    var totals = { food: 0, tax: 0, bar: 0, total: 0 };
     var items = toArray<Models.TicketItem>(ticket.items);
     items.forEach((item: Models.TicketItem) => {
-      totals.total += ticketItemTotals(item).total;
+      totals.food += ticketItemTotals(item).total;
     });
     return totals;
 }

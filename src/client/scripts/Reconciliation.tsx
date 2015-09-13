@@ -42,6 +42,7 @@ export class ReconciliationView extends Base.SyncView<ReconciliationViewProps, R
             var ticketItem = {
                 key: new Date().toISOString(),
                 name: item.name,
+                type: item.type,
                 price: item.price,
                 tax: item.tax,
                 quantity: 1
@@ -49,6 +50,7 @@ export class ReconciliationView extends Base.SyncView<ReconciliationViewProps, R
             (ticket.items as any as Sync.SyncNode).set(ticketItem.key, ticketItem);
         }
     }
+    
     render() {
         //console.log(this.name, 'Render');
         var classNames = this.preRender(['reconciliation']);
