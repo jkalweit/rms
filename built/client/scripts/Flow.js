@@ -302,7 +302,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Utils'], functio
                 width: this.props.arrow.width,
                 height: this.props.arrow.height
             };
-            return (React.createElement("svg", {"style": svgStyle}, React.createElement("defs", null, React.createElement("marker", {"id": "arrow", "marker-width": "10", "marker-height": "10", "refx": "0", "refy": "3", "orient": "auto", "markerUnits": "strokeWidth"}, React.createElement("path", {d: "M0,0 L0,6 L9,3 z", "fill": "#f00"}))), React.createElement("line", {"x1": "0", "y1": "0", "x2": this.props.arrow.width, "y2": this.props.arrow.height, "stroke": "#000", "strokeWidth": "5", "markerEnd": "url(#arrow)", "onMouseDown": this.drag.bind(this), "onClick": function () { _this.props.onSelected(_this.props.arrow); }})));
+            return (React.createElement("svg", {"style": svgStyle}, React.createElement("line", {"x1": "0", "y1": "0", "x2": this.props.arrow.width, "y2": this.props.arrow.height, "stroke": "#000", "strokeWidth": "5", "onMouseDown": this.drag.bind(this), "onClick": function () { _this.props.onSelected(_this.props.arrow); }})));
         };
         return FlowDiagramArrow;
     })(Base.SyncView);

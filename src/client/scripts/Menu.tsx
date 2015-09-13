@@ -48,6 +48,7 @@ export class MenuEdit extends bv.SyncView<MenuEditProps, MenuEditState> {
     newItem() {
         var mutable = {
             name: '',
+            tax: this.state.selectedCategory.defaultTax,
             price: 0
         } as Models.MenuItem;
         this.setState({ selectedItem: mutable }, () => {
@@ -254,10 +255,9 @@ export class MenuCategoryEdit extends bv.SyncView<MenuCategoryEditProps, MenuCat
                     <option>Alcohol</option>
                 </select>
                 <br />
-                <p><span className="col-4">Name: </span> <input className="col-6" ref="name" value={ mutable.name } onChange={ this.handleChange.bind(this, 'mutable', 'name') } /></p>
-                <p><span className="col-4">Default Tax: </span> <SmartInput.SmartInput className="col-2" model={mutable} modelProp="defaultTax"
-                onSave={(value: string): boolean => { this.state.mutable.defaultTax = parseFloat(value); return false; }} /></p>
-                <p><span className="col-4">Note: </span> <input className="col-10" value={ mutable.note } onChange={ this.handleChange.bind(this, 'mutable', 'note') } /></p>
+                <p><span className="col-4">Name: </span> <SmartInput.SmartInput className="col-6" model={mutable} modelProp="name" isPOCO /></p>
+                <p><span className="col-4">Default Tax: </span> <SmartInput.SmartInput className="col-2" model={mutable} modelProp="defaultTax" isNumber isPOCO /></p>
+                <p><span className="col-4">Note: </span> <SmartInput.SmartInput className="col-10" model={mutable} modelProp="note" isPOCO /></p>
                 <bv.SimpleConfirmView
                 onCancel={() => { this.cancel() } }
                 onSave={() => { this.save() } }
@@ -328,8 +328,9 @@ export class MenuItemEdit extends bv.SyncView<MenuItemEditProps, MenuItemEditSta
             <div className={classNames.join(' ')}>
               <h3>Edit Item</h3>
               <div className="inner">
-                <p><span className="col-4">Name: </span> <input className="col-6" ref="name" value={ mutable.name } onChange={ this.handleChange.bind(this, 'mutable', 'name') } /></p>
-                <p><span className="col-4">Price: </span> <input className="col-2" value={ mutable.price.toString() } onChange={ this.handleChange.bind(this, 'mutable', 'price') } /></p>
+                <p><span className="col-4">Name: </span> <SmartInput.SmartInput className="col-6" model={mutable} modelProp="name" isPOCO /></p>
+                <p><span className="col-4">Price: </span> <SmartInput.SmartInput className="col-2" model={mutable} modelProp="price" isNumber isPOCO /></p>
+                <p><span className="col-4">Tax: </span> <SmartInput.SmartInput className="col-2" model={mutable} modelProp="tax" isNumber isPOCO /></p>
                 <bv.SimpleConfirmView
                 onCancel={() => { this.cancel() } }
                 onSave={() => { this.save() } }

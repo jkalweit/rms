@@ -11,6 +11,7 @@ export interface SmartInputProps {
   modelProp: string;
   isNumber?: boolean;
   isMultiline?: boolean;
+  isPOCO?: boolean;
 }
 export interface SmartInputState {
   value: string;
@@ -36,7 +37,11 @@ export class SmartInput extends React.Component<SmartInputProps, SmartInputState
         val = parseFloat(val);
         console.log('converting to number', value, val);
       }
-      this.props.model.set(this.props.modelProp, val);
+      if(this.props.isPOCO) {
+        this.props.model[this.props.modelProp] = val;
+      } else {
+        this.props.model.set(this.props.modelProp, val);
+      }
     }
   }
   render() {

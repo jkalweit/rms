@@ -450,13 +450,7 @@ export class FlowDiagramArrow extends Base.SyncView<FlowDiagramArrowProps, FlowD
 
         return (
           <svg style={svgStyle}>
-            <defs>
-              <marker id="arrow" marker-width="10" marker-height="10" refx="0" refy="3" orient="auto" markerUnits="strokeWidth">
-                <path d="M0,0 L0,6 L9,3 z" fill="#f00" />
-              </marker>
-            </defs>
-
-            <line x1="0" y1="0" x2={this.props.arrow.width} y2={this.props.arrow.height} stroke="#000" strokeWidth="5" markerEnd="url(#arrow)" onMouseDown={ this.drag.bind(this) } onClick={() => { this.props.onSelected(this.props.arrow); }} />
+            <line x1="0" y1="0" x2={this.props.arrow.width} y2={this.props.arrow.height} stroke="#000" strokeWidth="5" onMouseDown={ this.drag.bind(this) } onClick={() => { this.props.onSelected(this.props.arrow); }} />
           </svg>
         );
     }

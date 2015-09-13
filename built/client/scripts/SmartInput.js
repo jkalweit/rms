@@ -27,7 +27,12 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
                     val = parseFloat(val);
                     console.log('converting to number', value, val);
                 }
-                this.props.model.set(this.props.modelProp, val);
+                if (this.props.isPOCO) {
+                    this.props.model[this.props.modelProp] = val;
+                }
+                else {
+                    this.props.model.set(this.props.modelProp, val);
+                }
             }
         };
         SmartInput.prototype.render = function () {

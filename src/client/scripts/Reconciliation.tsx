@@ -43,6 +43,7 @@ export class ReconciliationView extends Base.SyncView<ReconciliationViewProps, R
                 key: new Date().toISOString(),
                 name: item.name,
                 price: item.price,
+                tax: item.tax,
                 quantity: 1
             } as Models.TicketItem;
             (ticket.items as any as Sync.SyncNode).set(ticketItem.key, ticketItem);

@@ -32,6 +32,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
                     key: new Date().toISOString(),
                     name: item.name,
                     price: item.price,
+                    tax: item.tax,
                     quantity: 1
                 };
                 ticket.items.set(ticketItem.key, ticketItem);

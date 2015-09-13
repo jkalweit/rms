@@ -54,6 +54,7 @@ export interface MenuCategory extends ISyncObject {
 export interface MenuItem extends ISyncObject {
     key?: string;
     name?: string;
+    tax?: number;
     price?: number;
 }
 
@@ -67,8 +68,10 @@ export interface Ticket extends ISyncObject {
 export interface TicketItem extends ISyncObject {
     key?: string;
     name?: string;
+    type?: string;
     price?: number;
     quantity?: number;
+    tax?: number;
     note?: string;
 }
 
