@@ -45,6 +45,7 @@ var Log = Logger.Log;
 // }
 
 export interface ISyncNode {
+  parent?: ISyncNode;
   lastModified?: string;
   set?: (propName: string, value: any) => ISetResult;
   onUpdated?: (updated: Object, action: string, path: string, merge: any) => void;
@@ -92,6 +93,7 @@ export class SyncNode implements ISyncNode {
                     //console.log('herrrrrre        1')
                 }
                 SyncNode.addNE(prop, 'onUpdated', SyncNode.createOnUpdated(this, propName));
+                SyncNode.addNE(prop, 'parent', this);
             }
 
             SyncNode.addImmutable(this, propName, prop);

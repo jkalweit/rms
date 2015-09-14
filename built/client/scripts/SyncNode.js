@@ -22,6 +22,7 @@ define(["require", "exports", './Logger'], function (require, exports, Logger) {
                     else {
                     }
                     SyncNode.addNE(prop, 'onUpdated', SyncNode.createOnUpdated(_this, propName));
+                    SyncNode.addNE(prop, 'parent', _this);
                 }
                 SyncNode.addImmutable(_this, propName, prop);
             });

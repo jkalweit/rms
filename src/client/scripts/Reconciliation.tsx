@@ -145,12 +145,6 @@ export class Tickets extends Base.SyncView<TicketsProps, TicketsState> {
             this.updateFilteredTickets(this.props.tickets, this.filterInput.value);
         });
     }
-    moveTicketItem(destinationTicket: Models.Ticket, dragData: TicketItemDragData) {
-        var sourceTicket = this.props.tickets[dragData.sourceTicketKey];
-        var sourceItem = sourceTicket.items[dragData.sourceItemKey];
-        (destinationTicket.items as Sync.ISyncNode).set(sourceItem.key, sourceItem);
-        (sourceTicket.items as Sync.ISyncNode).remove(sourceItem.key);
-    }
     render() {
         //console.log(this.name, 'render');
         //console.log('filteredTickets: ', this.state.filteredTickets);
@@ -158,7 +152,6 @@ export class Tickets extends Base.SyncView<TicketsProps, TicketsState> {
         var nodes = this.state.filteredTickets.map((ticket: Models.Ticket) => {
             var isSelected = this.props.selectedTicket === ticket;
             return (<Ticket key={ticket.key} isSelected={isSelected} ticket={ticket}
-              onDropTicketItem={this.moveTicketItem.bind(this)}
               onSelect={(ticket) => { this.props.onSelectTicket(ticket) } }></Ticket>);
         });
         return (
@@ -188,7 +181,6 @@ export interface TicketProps {
     isSelected: boolean;
     ticket: Models.Ticket;
     onSelect: (ticket: Models.Ticket) => void;
-    onDropTicketItem: (ticket: Models.Ticket, dragData: TicketItemDragData) => void;
 }
 export class Ticket extends Base.SyncView<TicketProps, {}> {
     name: string = '    TicketView';
@@ -200,7 +192,12 @@ export class Ticket extends Base.SyncView<TicketProps, {}> {
     drop(ev: React.DragEvent) {
       ev.preventDefault();
       var dragData = JSON.parse(ev.dataTransfer.getData('application/ticketitem')) as TicketItemDragData;
-      this.props.onDropTicketItem(this.props.ticket, dragData);
+      var destinationTicket = this.props.ticket;
+      var tickets = (destinationTicket as Sync.ISyncNode).parent as {[key: string]: Models.Ticket};
+      var sourceTicket = tickets[dragData.sourceTicketKey];
+      var sourceItem = sourceTicket.items[dragData.sourceItemKey];
+      (destinationTicket.items as Sync.ISyncNode).set(sourceItem.key, sourceItem);
+      (sourceTicket.items as Sync.ISyncNode).remove(sourceItem.key);
     }
     render() {
         var classNames = this.preRender();
