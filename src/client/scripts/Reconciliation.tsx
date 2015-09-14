@@ -145,13 +145,21 @@ export class Tickets extends Base.SyncView<TicketsProps, TicketsState> {
             this.updateFilteredTickets(this.props.tickets, this.filterInput.value);
         });
     }
+    moveTicketItem(destinationTicket: Models.Ticket, dragData: TicketItemDragData) {
+        var sourceTicket = this.props.tickets[dragData.sourceTicketKey];
+        var sourceItem = sourceTicket.items[dragData.sourceItemKey];
+        (destinationTicket.items as Sync.ISyncNode).set(sourceItem.key, sourceItem);
+        (sourceTicket.items as Sync.ISyncNode).remove(sourceItem.key);
+    }
     render() {
         //console.log(this.name, 'render');
         //console.log('filteredTickets: ', this.state.filteredTickets);
         var classNames = this.preRender(['ticket-list']);
         var nodes = this.state.filteredTickets.map((ticket: Models.Ticket) => {
             var isSelected = this.props.selectedTicket === ticket;
-            return (<Ticket key={ticket.key} isSelected={isSelected} ticket={ticket} onSelect={(ticket) => { this.props.onSelectTicket(ticket) } }></Ticket>);
+            return (<Ticket key={ticket.key} isSelected={isSelected} ticket={ticket}
+              onDropTicketItem={this.moveTicketItem.bind(this)}
+              onSelect={(ticket) => { this.props.onSelectTicket(ticket) } }></Ticket>);
         });
         return (
             <div className={classNames.join(' ') }>
@@ -175,24 +183,24 @@ export class Tickets extends Base.SyncView<TicketsProps, TicketsState> {
 
 
 
-
 export interface TicketProps {
     key: string;
     isSelected: boolean;
     ticket: Models.Ticket;
     onSelect: (ticket: Models.Ticket) => void;
+    onDropTicketItem: (ticket: Models.Ticket, dragData: TicketItemDragData) => void;
 }
 export class Ticket extends Base.SyncView<TicketProps, {}> {
     name: string = '    TicketView';
     allowDrop(ev: React.DragEvent) {
       if(Utils.arrayContains((ev.dataTransfer.types as any), 'application/ticketitem')) {
-        console.log('here!!!!!');
         ev.preventDefault();
       }
     }
     drop(ev: React.DragEvent) {
       ev.preventDefault();
-      alert('dropped! ' + ev.dataTransfer.getData('application/ticketitem'));
+      var dragData = JSON.parse(ev.dataTransfer.getData('application/ticketitem')) as TicketItemDragData;
+      this.props.onDropTicketItem(this.props.ticket, dragData);
     }
     render() {
         var classNames = this.preRender();
@@ -207,6 +215,10 @@ export class Ticket extends Base.SyncView<TicketProps, {}> {
 }
 
 
+export interface TicketItemDragData {
+  sourceTicketKey: string;
+  sourceItemKey: string;
+}
 
 export interface TicketDetailsProps {
     ticket: Models.Ticket;
@@ -224,7 +236,11 @@ export class TicketDetails extends Base.SyncView<TicketDetailsProps, TicketDetai
         }
     }
     drag(ev: React.DragEvent, item: Models.TicketItem) {
-      ev.dataTransfer.setData('application/ticketitem', JSON.stringify(item)); // type gets converted to lowercase, at least in Chrome... -JDK 2015-09-13
+      var dragObj: TicketItemDragData = {
+        sourceTicketKey: this.props.ticket.key,
+        sourceItemKey: item.key
+      };
+      ev.dataTransfer.setData('application/ticketitem', JSON.stringify(dragObj)); // type gets converted to lowercase, at least in Chrome... -JDK 2015-09-13
       ev.dataTransfer.setData('text/plain', item.name);
     }
     render() {

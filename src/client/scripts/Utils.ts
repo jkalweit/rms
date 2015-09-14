@@ -75,10 +75,8 @@ export function snapToGrid(val: number, grid: number) {
 
 export function arrayContains(list: string[], value: string)
 {
-    console.log('    here', value);
     for( var i = 0; i < list.length; ++i )
     {
-        console.log(i, list[i]);
         if(list[i] === value) return true;
     }
 

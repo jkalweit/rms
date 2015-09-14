@@ -61,9 +61,7 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.snapToGrid = snapToGrid;
     function arrayContains(list, value) {
-        console.log('    here', value);
         for (var i = 0; i < list.length; ++i) {
-            console.log(i, list[i]);
             if (list[i] === value)
                 return true;
         }

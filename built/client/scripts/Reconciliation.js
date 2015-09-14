@@ -102,12 +102,18 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
                 _this.updateFilteredTickets(_this.props.tickets, _this.filterInput.value);
             });
         };
+        Tickets.prototype.moveTicketItem = function (destinationTicket, dragData) {
+            var sourceTicket = this.props.tickets[dragData.sourceTicketKey];
+            var sourceItem = sourceTicket.items[dragData.sourceItemKey];
+            destinationTicket.items.set(sourceItem.key, sourceItem);
+            sourceTicket.items.remove(sourceItem.key);
+        };
         Tickets.prototype.render = function () {
             var _this = this;
             var classNames = this.preRender(['ticket-list']);
             var nodes = this.state.filteredTickets.map(function (ticket) {
                 var isSelected = _this.props.selectedTicket === ticket;
-                return (React.createElement(Ticket, {"key": ticket.key, "isSelected": isSelected, "ticket": ticket, "onSelect": function (ticket) { _this.props.onSelectTicket(ticket); }}));
+                return (React.createElement(Ticket, {"key": ticket.key, "isSelected": isSelected, "ticket": ticket, "onDropTicketItem": _this.moveTicketItem.bind(_this), "onSelect": function (ticket) { _this.props.onSelectTicket(ticket); }}));
             });
             return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("div", {"className": "btn", "onClick": function () { _this.toggleShowPaid(); }}, "Paid: ", this.state.showPaidTickets ? 'Shown' : 'Hidden'), React.createElement("input", {"className": "name-filter", "ref": function (el) {
                 var input = React.findDOMNode(el);
@@ -131,13 +137,13 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
         }
         Ticket.prototype.allowDrop = function (ev) {
             if (Utils.arrayContains(ev.dataTransfer.types, 'application/ticketitem')) {
-                console.log('here!!!!!');
                 ev.preventDefault();
             }
         };
         Ticket.prototype.drop = function (ev) {
             ev.preventDefault();
-            alert('dropped! ' + ev.dataTransfer.getData('application/ticketitem'));
+            var dragData = JSON.parse(ev.dataTransfer.getData('application/ticketitem'));
+            this.props.onDropTicketItem(this.props.ticket, dragData);
         };
         Ticket.prototype.render = function () {
             var _this = this;
@@ -160,7 +166,11 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
             };
         }
         TicketDetails.prototype.drag = function (ev, item) {
-            ev.dataTransfer.setData('application/ticketitem', JSON.stringify(item));
+            var dragObj = {
+                sourceTicketKey: this.props.ticket.key,
+                sourceItemKey: item.key
+            };
+            ev.dataTransfer.setData('application/ticketitem', JSON.stringify(dragObj));
             ev.dataTransfer.setData('text/plain', item.name);
         };
         TicketDetails.prototype.render = function () {

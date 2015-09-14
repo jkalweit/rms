@@ -2,9 +2,9 @@
   "name": "rms",
   "version": "1.0.0",
   "description": "",
-  "main": "./built/server/Server.js",
+  "main": "./built/server/server.js",
   "scripts": {
-      "start": "node ./built/server/Server.js"
+      "start": "node ./built/server/server.js"
   },
   "dependencies": {
     "body-parser": "^1.13.2",
