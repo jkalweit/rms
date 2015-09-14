@@ -29,31 +29,41 @@ export function formatCurrency(value: any, precision: number = 2): string {
 
 
 export interface TicketItemTotals {
+  subTotal: number;
+  tax: number;
   total: number;
 }
 export function ticketItemTotals(item: Models.TicketItem): TicketItemTotals {
-    var totals = { food: 0, tax: 0, bar: 0, total: 0 };
-    var subTotal = item.quantity * item.price;
-    if(item.type === 'Food')
-    totals.total = item.price * item.quantity;
+    var totals = { Food: 0, Alcohol: 0, subTotal: 0, tax: 0, total: 0 };
+    totals.subTotal = roundToTwo(item.quantity * item.price);
+
+    totals.tax = roundToTwo(totals.subTotal * (item.tax ? item.tax : 0));
+    totals.total = totals.subTotal + totals.tax;
+
     return totals;
 }
 
 export interface TicketTotals {
-  food: number;
+  Food: number;
+  Alcohol: number;
   tax: number;
-  bar: number;
   total: number;
 }
 export function ticketTotals(ticket: Models.Ticket): TicketTotals {
-    var totals = { food: 0, tax: 0, bar: 0, total: 0 };
+    var totals = { Food: 0, Alcohol: 0, tax: 0, total: 0 };
     var items = toArray<Models.TicketItem>(ticket.items);
     items.forEach((item: Models.TicketItem) => {
-      totals.food += ticketItemTotals(item).total;
+      var itemTotals = ticketItemTotals(item);
+      totals[item.type] += itemTotals.subTotal;
+      totals.tax += itemTotals.tax;
+      totals.total += itemTotals.total;
     });
     return totals;
 }
 
+export function roundToTwo(num: number) {
+    return +(Math.round((num.toString() + 'e+2') as any)  + "e-2");
+}
 
 export function snapToGrid(val: number, grid: number) {
     var offset = val % grid;
@@ -61,4 +71,16 @@ export function snapToGrid(val: number, grid: number) {
         return val - offset;
     else
         return val + (grid - offset);
+}
+
+export function arrayContains(list: string[], value: string)
+{
+    console.log('    here', value);
+    for( var i = 0; i < list.length; ++i )
+    {
+        console.log(i, list[i]);
+        if(list[i] === value) return true;
+    }
+
+    return false;
 }

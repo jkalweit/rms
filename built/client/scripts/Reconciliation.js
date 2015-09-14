@@ -129,13 +129,23 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
             _super.apply(this, arguments);
             this.name = '    TicketView';
         }
+        Ticket.prototype.allowDrop = function (ev) {
+            if (Utils.arrayContains(ev.dataTransfer.types, 'application/ticketitem')) {
+                console.log('here!!!!!');
+                ev.preventDefault();
+            }
+        };
+        Ticket.prototype.drop = function (ev) {
+            ev.preventDefault();
+            alert('dropped! ' + ev.dataTransfer.getData('application/ticketitem'));
+        };
         Ticket.prototype.render = function () {
             var _this = this;
             var classNames = this.preRender();
             if (this.props.isSelected)
                 classNames.push('active');
             var ticket = this.props.ticket;
-            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(ticket); }}, ticket.name));
+            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(ticket); }, "onDragOver": this.allowDrop.bind(this), "onDrop": this.drop.bind(this)}, ticket.name));
         };
         return Ticket;
     })(Base.SyncView);
@@ -149,17 +159,21 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
                 selectedItem: null
             };
         }
+        TicketDetails.prototype.drag = function (ev, item) {
+            ev.dataTransfer.setData('application/ticketitem', JSON.stringify(item));
+            ev.dataTransfer.setData('text/plain', item.name);
+        };
         TicketDetails.prototype.render = function () {
             var _this = this;
             var classNames = this.preRender(['ticket-details']);
             var ticket = this.props.ticket;
             var items = Utils.toArray(ticket.items);
             var nodes = items.map(function (item) {
-                return (React.createElement(TicketItem, {"key": item.key, "item": item, "onSelect": function (item) { _this.setState({ selectedItem: item }); _this.refs['ticketItemEditModal'].show(); }}));
+                return (React.createElement(TicketItem, {"key": item.key, "item": item, "onDragItem": _this.drag.bind(_this), "onSelect": function (item) { _this.setState({ selectedItem: item }); _this.refs['ticketItemEditModal'].show(); }}));
             });
             var totals = Utils.ticketTotals(this.props.ticket);
-            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("h3", null, React.createElement(SmartInput, {"model": this.props.ticket, "modelProp": "name"}), React.createElement("button", {"onClick": function () { if (confirm('Remove?'))
-                _this.props.onRemove(_this.props.ticket); }}, "X")), React.createElement("ul", null, nodes), React.createElement("div", {"className": "ticket-footer"}, React.createElement("button", {"onClick": function () { ticket.set('isPaid', !ticket.isPaid); }}, ticket.isPaid ? 'Paid' : 'Open'), React.createElement("div", {"className": "total"}, "Total: ", Utils.formatCurrency(totals.total))), React.createElement(Base.ModalView, {"ref": "ticketItemEditModal"}, this.state.selectedItem ? (React.createElement(TicketItemEdit, {"item": this.state.selectedItem, "onSave": function (item) {
+            return (React.createElement("div", {"className": classNames.join(' ')}, React.createElement("div", {"className": "ticket-header"}, React.createElement(SmartInput, {"model": this.props.ticket, "modelProp": "name"}), React.createElement("button", {"onClick": function () { if (confirm('Remove?'))
+                _this.props.onRemove(_this.props.ticket); }}, "X")), React.createElement("div", {"className": "ticket-items"}, React.createElement("ul", null, nodes)), React.createElement("div", {"className": "ticket-footer"}, React.createElement("button", {"onClick": function () { ticket.set('isPaid', !ticket.isPaid); }}, ticket.isPaid ? 'Paid' : 'Open'), React.createElement("div", {"className": "totals"}, React.createElement("div", {"className": "food"}, "Food: ", React.createElement("span", {"className": "amount"}, Utils.formatCurrency(totals.Food))), React.createElement("div", {"className": "tax"}, "Tax: ", React.createElement("span", {"className": "amount"}, Utils.formatCurrency(totals.tax))), React.createElement("div", {"className": "bar"}, "Bar: ", React.createElement("span", {"className": "amount"}, Utils.formatCurrency(totals.Alcohol))), React.createElement("div", {"className": "total"}, "Total: ", React.createElement("span", {"className": "amount"}, Utils.formatCurrency(totals.total))))), React.createElement(Base.ModalView, {"ref": "ticketItemEditModal"}, this.state.selectedItem ? (React.createElement(TicketItemEdit, {"item": this.state.selectedItem, "onSave": function (item) {
                 _this.props.ticket.items.set(item.key, item);
                 _this.refs['ticketItemEditModal'].hide();
             }, "onCancel": function () {
@@ -182,7 +196,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
             var _this = this;
             var classNames = this.preRender();
             var item = this.props.item;
-            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(_this.props.item); }}, React.createElement(SmartInput, {"className": "quantity", "model": item, "modelProp": "quantity", "isNumber": true}), React.createElement("span", {"className": "name"}, item.name), React.createElement("span", {"className": "price"}, Utils.formatCurrency(Utils.ticketItemTotals(item).total)), this.props.item.note && this.props.item.note !== '' ?
+            return (React.createElement("li", {"className": classNames.join(' '), "onClick": function () { _this.props.onSelect(_this.props.item); }, "draggable": true, "onDragStart": function (ev) { _this.props.onDragItem(ev, _this.props.item); }}, React.createElement(SmartInput, {"className": "quantity", "model": item, "modelProp": "quantity", "isNumber": true}), React.createElement("span", {"className": "name"}, item.name), React.createElement("span", {"className": "price"}, Utils.formatCurrency(Utils.ticketItemTotals(item).subTotal)), this.props.item.note && this.props.item.note !== '' ?
                 React.createElement(SmartInput, {"className": "note", "model": item, "modelProp": "note", "isMultiline": true})
                 : null));
         };

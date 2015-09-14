@@ -29,22 +29,29 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.formatCurrency = formatCurrency;
     function ticketItemTotals(item) {
-        var totals = { food: 0, tax: 0, bar: 0, total: 0 };
-        var subTotal = item.quantity * item.price;
-        if (item.type === 'Food')
-            totals.total = item.price * item.quantity;
+        var totals = { Food: 0, Alcohol: 0, subTotal: 0, tax: 0, total: 0 };
+        totals.subTotal = roundToTwo(item.quantity * item.price);
+        totals.tax = roundToTwo(totals.subTotal * (item.tax ? item.tax : 0));
+        totals.total = totals.subTotal + totals.tax;
         return totals;
     }
     exports.ticketItemTotals = ticketItemTotals;
     function ticketTotals(ticket) {
-        var totals = { food: 0, tax: 0, bar: 0, total: 0 };
+        var totals = { Food: 0, Alcohol: 0, tax: 0, total: 0 };
         var items = toArray(ticket.items);
         items.forEach(function (item) {
-            totals.food += ticketItemTotals(item).total;
+            var itemTotals = ticketItemTotals(item);
+            totals[item.type] += itemTotals.subTotal;
+            totals.tax += itemTotals.tax;
+            totals.total += itemTotals.total;
         });
         return totals;
     }
     exports.ticketTotals = ticketTotals;
+    function roundToTwo(num) {
+        return +(Math.round((num.toString() + 'e+2')) + "e-2");
+    }
+    exports.roundToTwo = roundToTwo;
     function snapToGrid(val, grid) {
         var offset = val % grid;
         if (offset < (grid / 2))
@@ -53,5 +60,15 @@ define(["require", "exports"], function (require, exports) {
             return val + (grid - offset);
     }
     exports.snapToGrid = snapToGrid;
+    function arrayContains(list, value) {
+        console.log('    here', value);
+        for (var i = 0; i < list.length; ++i) {
+            console.log(i, list[i]);
+            if (list[i] === value)
+                return true;
+        }
+        return false;
+    }
+    exports.arrayContains = arrayContains;
 });
 //# sourceMappingURL=Utils.js.map

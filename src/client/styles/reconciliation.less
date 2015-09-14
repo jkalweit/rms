@@ -93,40 +93,67 @@
 
   .ticket-details {
     position: absolute;
-    top: 5px; bottom: 5px;
-    left: 205px; width: 300px;
+    top: 0px; bottom: 0px;
+    left: 200px; width: 300px;
     background-color: #FFFFFF;
-    margin: 10px;
+    margin: 0px;
     border: 1px solid @mdc-black-light;
     //box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+
+
+    @ticket-header-height: 40px;
+    @ticket-footer-height: 100px;
+
+
+    .ticket-header {
+      width: 100%;
+      height: @ticket-header-height;
+      padding: 10px;
+      background-color: @mdc-purple-500;
+      color: #FFF;
+
+      button {
+        float: right;
+      }
+    }
+
+    .ticket-items {
+      position: absolute;
+      top: @ticket-header-height;
+      bottom: @ticket-footer-height;
+      left: 0; right: 0;
+      width: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
 
     .ticket-footer {
       position: absolute;
       bottom: 0;
       width: 100%;
-      height: 50px;
+      height: @ticket-footer-height;
       border-top: 1px solid @mdc-black-lighter;
       padding: 10px;
 
-      .total {
-        float: right;
+      button {
+        float: left;
       }
-    }
 
-    button {
-      float: right;
-    }
-
-    @ticket-header-height: 40px;
-
-    h3 {
-      height: @ticket-header-height;
+      .totals {
+        width: 50%;
+        float: right;
+        .food, .bar, .tax, .total {
+          .amount {
+              float: right;
+          }
+        }
+      }
     }
 
     ul {
       .scroll-vertical;
       position: absolute;
-      top: @ticket-header-height; bottom: 0;
+      top: 0; bottom: 0;
       left: 0; right: 0;
       list-style: none;
       margin: 0;
@@ -152,7 +179,6 @@
           color: @mdc-black-darker;
         }
         .name {
-          min-width: 200px;
         }
         .quantity {
           display: block;

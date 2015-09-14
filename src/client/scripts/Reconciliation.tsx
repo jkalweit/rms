@@ -50,7 +50,6 @@ export class ReconciliationView extends Base.SyncView<ReconciliationViewProps, R
             (ticket.items as any as Sync.SyncNode).set(ticketItem.key, ticketItem);
         }
     }
-    
     render() {
         //console.log(this.name, 'Render');
         var classNames = this.preRender(['reconciliation']);
@@ -185,13 +184,24 @@ export interface TicketProps {
 }
 export class Ticket extends Base.SyncView<TicketProps, {}> {
     name: string = '    TicketView';
+    allowDrop(ev: React.DragEvent) {
+      if(Utils.arrayContains((ev.dataTransfer.types as any), 'application/ticketitem')) {
+        console.log('here!!!!!');
+        ev.preventDefault();
+      }
+    }
+    drop(ev: React.DragEvent) {
+      ev.preventDefault();
+      alert('dropped! ' + ev.dataTransfer.getData('application/ticketitem'));
+    }
     render() {
         var classNames = this.preRender();
         if (this.props.isSelected) classNames.push('active');
         var ticket = this.props.ticket;
         //console.log('       Render: Ticket: ' + ticket.name);
         return (
-            <li className={ classNames.join(' ') } onClick={() => { this.props.onSelect(ticket) } }>{ticket.name}</li>
+            <li className={ classNames.join(' ') } onClick={() => { this.props.onSelect(ticket) } }
+            onDragOver={this.allowDrop.bind(this)} onDrop={this.drop.bind(this)}>{ticket.name}</li>
         );
     }
 }
@@ -213,6 +223,10 @@ export class TicketDetails extends Base.SyncView<TicketDetailsProps, TicketDetai
             selectedItem: null
         }
     }
+    drag(ev: React.DragEvent, item: Models.TicketItem) {
+      ev.dataTransfer.setData('application/ticketitem', JSON.stringify(item)); // type gets converted to lowercase, at least in Chrome... -JDK 2015-09-13
+      ev.dataTransfer.setData('text/plain', item.name);
+    }
     render() {
         var classNames = this.preRender(['ticket-details']);
         var ticket = this.props.ticket;
@@ -221,7 +235,7 @@ export class TicketDetails extends Base.SyncView<TicketDetailsProps, TicketDetai
         var items = Utils.toArray(ticket.items);
         var nodes = items.map((item: Models.TicketItem) => {
             return (
-                <TicketItem key={item.key} item={item} onSelect={(item: Models.TicketItem) => { this.setState({ selectedItem: item }); (this.refs['ticketItemEditModal'] as Base.ModalView).show() }}></TicketItem>
+                <TicketItem key={item.key} item={item} onDragItem={this.drag.bind(this)} onSelect={(item: Models.TicketItem) => { this.setState({ selectedItem: item }); (this.refs['ticketItemEditModal'] as Base.ModalView).show() }}></TicketItem>
             );
         });
 
@@ -230,14 +244,29 @@ export class TicketDetails extends Base.SyncView<TicketDetailsProps, TicketDetai
 
         return (
             <div className={classNames.join(' ') }>
-              <h3><SmartInput model={this.props.ticket} modelProp="name" /><button onClick={() => { if (confirm('Remove?')) this.props.onRemove(this.props.ticket); } }>X</button></h3>
-              <ul>
-                { nodes }
-              </ul>
+              <div className="ticket-header">
+                <SmartInput model={this.props.ticket} modelProp="name" /><button onClick={() => { if (confirm('Remove?')) this.props.onRemove(this.props.ticket); } }>X</button>
+              </div>
+              <div className="ticket-items">
+                <ul>
+                  { nodes }
+                </ul>
+              </div>
               <div className="ticket-footer">
                 <button onClick={() => { (ticket as Sync.ISyncNode).set('isPaid', !ticket.isPaid); } }>{ ticket.isPaid ? 'Paid' : 'Open' }</button>
-                <div className="total">
-                Total: { Utils.formatCurrency(totals.total) }
+                <div className="totals">
+                  <div className="food">
+                    Food: <span className="amount">{ Utils.formatCurrency(totals.Food) }</span>
+                  </div>
+                  <div className="tax">
+                  Tax: <span className="amount">{ Utils.formatCurrency(totals.tax) }</span>
+                  </div>
+                  <div className="bar">
+                  Bar: <span className="amount">{ Utils.formatCurrency(totals.Alcohol) }</span>
+                  </div>
+                  <div className="total">
+                  Total: <span className="amount">{ Utils.formatCurrency(totals.total) }</span>
+                  </div>
                 </div>
               </div>
 
@@ -277,6 +306,7 @@ export class TicketDetails extends Base.SyncView<TicketDetailsProps, TicketDetai
 export interface TicketItemProps {
     key: string;
     item: Models.TicketItem;
+    onDragItem: (ev: React.DragEvent, item: Models.TicketItem) => void;
     onSelect: (item: Models.TicketItem) => void;
 }
 export class TicketItem extends Base.SyncView<TicketItemProps, {}> {
@@ -285,10 +315,11 @@ export class TicketItem extends Base.SyncView<TicketItemProps, {}> {
         var classNames = this.preRender();
         var item = this.props.item;
         return (
-            <li className={classNames.join(' ')} onClick={() => { this.props.onSelect(this.props.item); }}>
+            <li className={classNames.join(' ')} onClick={() => { this.props.onSelect(this.props.item); }}
+              draggable onDragStart={(ev: React.DragEvent) => { this.props.onDragItem(ev, this.props.item); }}>
               <SmartInput className="quantity" model={item} modelProp="quantity" isNumber />
               <span className="name">{item.name}</span>
-              <span className="price">{ Utils.formatCurrency(Utils.ticketItemTotals(item).total) }</span>
+              <span className="price">{ Utils.formatCurrency(Utils.ticketItemTotals(item).subTotal) }</span>
               { this.props.item.note && this.props.item.note !== '' ?
                   <SmartInput className="note" model={item} modelProp="note" isMultiline />
                   : null

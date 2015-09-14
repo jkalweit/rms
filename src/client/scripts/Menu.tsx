@@ -329,6 +329,12 @@ export class MenuItemEdit extends bv.SyncView<MenuItemEditProps, MenuItemEditSta
             <div className={classNames.join(' ')}>
               <h3>Edit Item</h3>
               <div className="inner">
+                <span className="col-4">Type: </span> <select className="col-4" value={mutable.type} onChange={ this.handleChange.bind(this, 'mutable', 'type') } >
+                    <option></option>
+                    <option>Food</option>
+                    <option>Alcohol</option>
+                </select>
+                <br />
                 <p><span className="col-4">Name: </span> <SmartInput.SmartInput className="col-6" model={mutable} modelProp="name" isPOCO /></p>
                 <p><span className="col-4">Price: </span> <SmartInput.SmartInput className="col-2" model={mutable} modelProp="price" isNumber isPOCO /></p>
                 <p><span className="col-4">Tax: </span> <SmartInput.SmartInput className="col-2" model={mutable} modelProp="tax" isNumber isPOCO /></p>
