@@ -193,6 +193,7 @@ export class Ticket extends Base.SyncView<TicketProps, {}> {
       ev.preventDefault();
       var dragData = JSON.parse(ev.dataTransfer.getData('application/ticketitem')) as TicketItemDragData;
       var destinationTicket = this.props.ticket;
+      console.log('destinationTicket', destinationTicket);
       var tickets = (destinationTicket as Sync.ISyncNode).parent as {[key: string]: Models.Ticket};
       var sourceTicket = tickets[dragData.sourceTicketKey];
       var sourceItem = sourceTicket.items[dragData.sourceItemKey];

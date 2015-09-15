@@ -138,6 +138,7 @@ define(["require", "exports", 'react/addons', './BaseViews', './Menu', './Utils'
             ev.preventDefault();
             var dragData = JSON.parse(ev.dataTransfer.getData('application/ticketitem'));
             var destinationTicket = this.props.ticket;
+            console.log('destinationTicket', destinationTicket);
             var tickets = destinationTicket.parent;
             var sourceTicket = tickets[dragData.sourceTicketKey];
             var sourceItem = sourceTicket.items[dragData.sourceItemKey];

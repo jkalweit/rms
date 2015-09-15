@@ -69,6 +69,7 @@ define(["require", "exports", './Logger'], function (require, exports, Logger) {
                 var replaceWithMe = new SyncNode(target, updated.lastModified, propName);
                 SyncNode.addImmutable(replaceWithMe, propName, updated);
                 SyncNode.addNE(updated, 'onUpdated', SyncNode.createOnUpdated(replaceWithMe, propName));
+                SyncNode.addNE(updated, 'parent', replaceWithMe);
                 var newPath = propName + (path ? '.' + path : '');
                 var newMerge = { lastModified: replaceWithMe.lastModified };
                 newMerge[propName] = merge;
@@ -86,6 +87,7 @@ define(["require", "exports", './Logger'], function (require, exports, Logger) {
                         if (className !== 'SyncNode') {
                             value = new SyncNode(value, value.lastModified || new Date().toISOString());
                             SyncNode.addNE(value, 'onUpdated', SyncNode.createOnUpdated(replaceWithMe, propName));
+                            SyncNode.addNE(value, 'parent', replaceWithMe);
                         }
                     }
                     SyncNode.addImmutable(replaceWithMe, propName, value);

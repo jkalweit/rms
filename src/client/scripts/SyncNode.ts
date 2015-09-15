@@ -170,6 +170,7 @@ export class SyncNode implements ISyncNode {
             //console.log('CreateOnUpdated: replaceWithMe: ', replaceWithMe);
             SyncNode.addImmutable(replaceWithMe, propName, updated);
             SyncNode.addNE(updated, 'onUpdated', SyncNode.createOnUpdated(replaceWithMe, propName));
+            SyncNode.addNE(updated, 'parent', replaceWithMe);
             //console.log('Doing update!', propName, target, updated, replaceWithMe);
             var newPath = propName + (path ? '.' + path : '');
             var newMerge = { lastModified: replaceWithMe.lastModified };
@@ -191,6 +192,7 @@ export class SyncNode implements ISyncNode {
                     if (className !== 'SyncNode') {
                         value = new SyncNode(value, value.lastModified || new Date().toISOString());
                         SyncNode.addNE(value, 'onUpdated', SyncNode.createOnUpdated(replaceWithMe, propName));
+                        SyncNode.addNE(value, 'parent', replaceWithMe);
                     }
                 }
 
